@@ -177,6 +177,10 @@ Pantalla simple con un campo de texto (máx. 66 caracteres) + botón "Consultar"
 
 Formulario simple: nombre del negocio (texto libre, o seleccionar uno existente de `Merchant` si coincide), monto total, fecha, categoría (directo, sin pasar por RUC ya que no hay RUC). Se guarda como `Expense` con `source = .manual`, `cufe = nil`, `items = []`.
 
+### 4.4 Confirmación antes de guardar (vías 1 y 2)
+
+Después de un parseo exitoso, antes de insertar el `Expense`, se muestra una pantalla de revisión con los datos parseados (negocio, RUC, ítems, totales) y un campo para asignarle un alias al negocio (con sugerencias de `Merchant` existentes por RUC o nombre). El usuario confirma o descarta — nada se guarda automáticamente. Vía 3 no necesita esto porque ya es un formulario que se revisa antes de tocar Guardar.
+
 ---
 
 ## 5. Parseo DGI
@@ -309,6 +313,10 @@ Al resolver exitosamente, se crea el `Expense` correspondiente (pasando por la d
 2. Pantalla "Negocios sin categorizar": lista de `Merchant` con `category == nil`, el usuario le asigna categoría (texto libre o de una lista corta que el usuario mismo mantiene).
 3. Todos los `Expense` de ese RUC heredan la categoría a partir de ahí (vía join, no se duplica el dato en cada factura — `Expense.category` se resuelve leyendo `Merchant.category` por `issuerRuc`; para gastos manuales sin RUC, se asigna directo en `Expense.category`).
 4. Las gráficas de la Capa 1 agrupan por esta categoría. Lo no categorizado cae en un bucket "Sin categorizar" hasta que el usuario lo arregle.
+
+### 9.1 Alias del negocio (nombre visible)
+
+El `NOMBRE` que trae la factura de la DGI es la razón social registrada en el RUC, que muchas veces no coincide con el nombre comercial que el usuario reconoce (ej. un negocio operado bajo el RUC de una inmobiliaria distinta). `Merchant` tiene un campo opcional `alias`, editable por el usuario; toda la UI muestra `alias ?? name` en vez del `NOMBRE` crudo de la DGI.
 
 ---
 

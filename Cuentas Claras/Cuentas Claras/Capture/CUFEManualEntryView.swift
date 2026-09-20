@@ -19,6 +19,7 @@ struct CUFEManualEntryView: View {
     @State private var cufe = ""
     @State private var isLookingUp = false
     @State private var statusMessage: String?
+    @State private var pendingExpense: Expense?
 
     var body: some View {
         Form {
@@ -47,6 +48,9 @@ struct CUFEManualEntryView: View {
             .disabled(cufe.isEmpty || isLookingUp)
         }
         .navigationTitle("CUFE manual")
+        .navigationDestination(item: $pendingExpense) { expense in
+            PendingExpenseReviewView(expense: expense, onSaved: onSaved, onDiscarded: { pendingExpense = nil })
+        }
     }
 
     private func consultar() async {
@@ -55,10 +59,11 @@ struct CUFEManualEntryView: View {
         defer { isLookingUp = false }
 
         let outcome = await DGIInvoiceLookupService.lookup(cufe: cufe)
-        if let message = CUFEResolution.handle(outcome, cufe: cufe, in: modelContext) {
+        switch CUFEResolution.handle(outcome, cufe: cufe, in: modelContext) {
+        case .message(let message):
             statusMessage = message
-        } else {
-            onSaved()
+        case .needsReview(let expense):
+            pendingExpense = expense
         }
     }
 }

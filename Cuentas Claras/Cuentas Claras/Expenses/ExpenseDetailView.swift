@@ -19,12 +19,19 @@ struct ExpenseDetailView: View {
 
     @State private var isShowingDeleteConfirmation = false
 
+    private var displayName: String {
+        MerchantCategorization.displayName(for: expense, in: modelContext)
+    }
+
     var body: some View {
         Form {
             Section("Negocio") {
-                LabeledContent("Nombre", value: expense.issuerName)
+                LabeledContent("Nombre", value: displayName)
                 if let issuerRuc = expense.issuerRuc {
                     LabeledContent("RUC", value: issuerRuc)
+                }
+                if displayName != expense.issuerName {
+                    LabeledContent("Razón social (DGI)", value: expense.issuerName)
                 }
                 LabeledContent("Categoría", value: expense.category ?? "Sin categorizar")
             }
@@ -75,7 +82,7 @@ struct ExpenseDetailView: View {
             }
         }
         .textSelection(.enabled)
-        .navigationTitle(expense.issuerName)
+        .navigationTitle(displayName)
         .confirmationDialog(
             "¿Eliminar este gasto?",
             isPresented: $isShowingDeleteConfirmation,
