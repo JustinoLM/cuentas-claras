@@ -12,7 +12,10 @@ import SwiftData
 struct Cuentas_ClarasApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Expense.self,
+            InvoiceItem.self,
+            Merchant.self,
+            PendingLookup.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

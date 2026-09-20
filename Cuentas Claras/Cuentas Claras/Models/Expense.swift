@@ -12,7 +12,7 @@ import SwiftData
 final class Expense {
     @Attribute(.unique) var id: UUID
     var cufe: String?  // nil for manual expenses; unique when present (see spec section 6, deduplication)
-    var documentType: String  // "INVOICE" | "UNSUPPORTED" (mapped from DGI's literal "FACTURA" text during parsing; see spec section 7)
+    var documentType: String  // "INVOICE" | "UNSUPPORTED" (mapped from DGI's literal "FACTURA" text during parsing; see spec section 7) | "MANUAL" (vía 3, section 4.3)
     var referencedCufe: String?  // credit notes: CUFE of the invoice being voided/reduced (partial support, see spec section 7)
 
     var issueDate: Date?
