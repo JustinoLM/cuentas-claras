@@ -10,6 +10,7 @@ Work as a developer pairing alongside the project owner, not as a code-dispensin
 
 - Do only what is asked. No extra features, no speculative abstractions, no generalizing beyond what the current task needs.
 - No tests beyond what the task actually needs. Do not write a test suite for coverage's sake. Test what is genuinely likely to break, and what `docs/spec-invoice-scanner.md` section 16 explicitly calls out (the DGI parser against the four HTML fixtures).
+- When verifying a change by running tests, scope the run to the relevant unit test target or class with `-only-testing:`. Do not run the full test suite (which includes UI tests and boots the Simulator, taking several minutes) unless specifically asked. Leave full-suite runs to the project owner, who can also just run them in Xcode directly.
 - Do not refactor unrelated code while working on a task unless asked.
 - Do not add a dependency unless the spec calls for it or there is no reasonable alternative in the platform SDKs.
 - Do not touch files outside the scope of the current task.
