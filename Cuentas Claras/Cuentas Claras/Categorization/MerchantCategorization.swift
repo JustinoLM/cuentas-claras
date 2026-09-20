@@ -45,17 +45,20 @@ enum MerchantCategorization {
 
     // Cambiar la categoría de un Expense con RUC cambia la de TODO su Merchant (9.3) — nunca se
     // toca Expense.category para esos casos. Para manuales (sin RUC) sí es directo en el Expense.
-    static func setCategory(_ category: String?, for expense: Expense, in context: ModelContext) {
+    // Devuelve si de verdad se guardó algo, para que la UI pueda avisar si falló (item 7 del
+    // refinamiento) en vez de fallar en silencio como antes.
+    @discardableResult
+    static func setCategory(_ category: String?, for expense: Expense, in context: ModelContext) -> Bool {
         guard let issuerRuc = expense.issuerRuc else {
             expense.category = category
-            return
+            return true
         }
 
         var descriptor = FetchDescriptor<Merchant>(predicate: #Predicate { $0.ruc == issuerRuc })
         descriptor.fetchLimit = 1
-        if let merchant = try? context.fetch(descriptor).first {
-            merchant.category = category
-        }
+        guard let merchant = try? context.fetch(descriptor).first else { return false }
+        merchant.category = category
+        return true
     }
 
     // 9.2: "lista corta que el usuario mismo mantiene" — categorías ya usadas, para sugerir en vez
@@ -68,13 +71,14 @@ enum MerchantCategorization {
 
     // 9.1: el alias vive en Merchant, así que solo aplica a gastos con RUC — un gasto manual no
     // tiene Merchant al que amarrarlo (ya tiene su propio nombre editable vía "Editar gasto").
-    static func setAlias(_ alias: String?, for expense: Expense, in context: ModelContext) {
-        guard let issuerRuc = expense.issuerRuc else { return }
+    @discardableResult
+    static func setAlias(_ alias: String?, for expense: Expense, in context: ModelContext) -> Bool {
+        guard let issuerRuc = expense.issuerRuc else { return false }
 
         var descriptor = FetchDescriptor<Merchant>(predicate: #Predicate { $0.ruc == issuerRuc })
         descriptor.fetchLimit = 1
-        if let merchant = try? context.fetch(descriptor).first {
-            merchant.alias = alias
-        }
+        guard let merchant = try? context.fetch(descriptor).first else { return false }
+        merchant.alias = alias
+        return true
     }
 }
