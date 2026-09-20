@@ -7,14 +7,16 @@
 
 import SwiftUI
 
-// Spec section 15, pantalla 3: selector entre las tres vías de captura (sección 4). QR llega en un
-// PR separado (necesita dispositivo real para probarse) — CUFE manual y gasto manual ya están conectados.
+// Spec section 15, pantalla 3: selector entre las tres vías de captura (sección 4).
 struct CaptureSelectionView: View {
     var body: some View {
         NavigationStack {
             List {
-                Label("Escanear QR", systemImage: "qrcode.viewfinder")
-                    .foregroundStyle(.secondary)
+                NavigationLink {
+                    QRCaptureView()
+                } label: {
+                    Label("Escanear QR", systemImage: "qrcode.viewfinder")
+                }
 
                 NavigationLink {
                     CUFEManualEntryView()

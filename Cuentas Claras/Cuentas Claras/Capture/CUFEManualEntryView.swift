@@ -53,33 +53,10 @@ struct CUFEManualEntryView: View {
         statusMessage = nil
         defer { isLookingUp = false }
 
-        switch await DGIInvoiceLookupService.lookup(cufe: cufe) {
-        case .invalidFormat:
-            statusMessage = "El CUFE no tiene un formato válido."
-
-        case .networkError:
-            try? PendingLookupQueue.enqueue(cufe: cufe, in: modelContext)
-            statusMessage = "No hay conexión. Se guardó para reintentar cuando vuelva la señal."
-
-        case .parsingFailed:
-            statusMessage = "No se pudo leer la respuesta de la DGI."
-
-        case .parsed(.notFound):
-            statusMessage = "No se encontró ninguna factura con ese CUFE."
-
-        case .parsed(.unsupported):
-            statusMessage = "Ese documento no es una factura soportada (por ejemplo, una nota de crédito)."
-
-        case .parsed(.success(let expense)):
-            if let existing = try? ExpenseDeduplicator.existingExpense(withCufe: cufe, in: modelContext) {
-                statusMessage = "Ya tenías esta factura guardada: \(existing.issuerName)."
-                return
-            }
-
-            if let issuerRuc = expense.issuerRuc {
-                try? MerchantCategorization.registerMerchantIfNeeded(issuerRuc: issuerRuc, issuerName: expense.issuerName, in: modelContext)
-            }
-            modelContext.insert(expense)
+        let outcome = await DGIInvoiceLookupService.lookup(cufe: cufe)
+        if let message = CUFEResolution.handle(outcome, cufe: cufe, in: modelContext) {
+            statusMessage = message
+        } else {
             dismiss()
         }
     }
