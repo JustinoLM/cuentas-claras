@@ -175,9 +175,11 @@ Pantalla simple con un campo de texto (máx. 66 caracteres) + botón "Consultar"
 
 ### 4.3 Vía 3 — Gasto manual completo
 
-Formulario simple: nombre del negocio (texto libre, o seleccionar uno existente de `Merchant` si coincide), monto total, fecha, categoría (directo, sin pasar por RUC ya que no hay RUC). Se guarda como `Expense` con `source = .manual`, `cufe = nil`, `items = []`.
+Formulario simple: nombre del negocio (texto libre, o seleccionar uno existente de `Merchant` si coincide), monto total, fecha, categoría, método de pago (directo, sin pasar por RUC ya que no hay RUC). Se guarda como `Expense` con `source = .manual`, `cufe = nil`, `items = []`.
 
-A diferencia de las vías 1 y 2 (datos de la DGI, se asumen correctos), un gasto manual lo tecleó el usuario y puede tener errores — por eso es el único tipo de `Expense` editable después de guardado: mismo formulario, precargado, accesible desde el detalle del gasto (pantalla 2, sección 15) cuando `cufe == nil`. No pasa por la verificación blanda de duplicados (6.2) al editar.
+Método de pago para gastos manuales es una selección de una lista fija (`ManualPaymentMethod`): Efectivo, Tarjeta, Transferencia, Yappy, Banca en línea, Otro — no texto libre. `Expense.paymentMethod` sigue siendo `String?` porque el parser DGI llena ese mismo campo con texto tomado del HTML (5.6); el enum solo restringe lo que el usuario puede teclear a mano.
+
+A diferencia de las vías 1 y 2 (datos de la DGI, se asumen correctos), un gasto manual lo tecleó el usuario y puede tener errores — por eso es el único tipo de `Expense` editable después de guardado. La edición es campo por campo desde el detalle del gasto (pantalla 2, sección 15) cuando `cufe == nil` — nombre, fecha de pago, monto, categoría y método de pago se editan cada uno por separado, con su propio ícono y su propio banner de confirmación (sección 15) — no reabriendo el formulario completo de vía 3, que queda solo para crear. No pasa por la verificación blanda de duplicados (6.2) al editar.
 
 ### 4.4 Confirmación antes de guardar (vías 1 y 2)
 
@@ -475,7 +477,7 @@ Microsoft Graph API es gratis para uso de cuenta personal — no hay Azure de pa
 - **VisionKit `DataScannerViewController`** para la UI de escaneo en vivo.
 - Pantallas principales:
   1. Mis Facturas (lista raíz, mezcla facturas DGI y gastos manuales; con filtro/búsqueda, agrupada por mes en secciones colapsables — sin esto, años de datos serían una lista inmanejable; swipe-to-delete sobre una fila, sin diálogo de confirmación porque el gesto de dos pasos del swipe ya protege contra un borrado accidental). Se ordena y agrupa por `Expense.paymentDate` (`authorizationDate` ?? `issueDate` ?? `scanDate`) — nunca por `scanDate` a solas, que es cuándo se guardó en la app y puede no coincidir con cuándo se hizo la compra real.
-  2. Detalle de una factura/gasto — botón "Eliminar factura" (si tiene CUFE) o "Eliminar gasto" (manual), con diálogo de confirmación, ya que un solo toque no tiene la protección de dos pasos del swipe. La fecha se muestra bajo una sola etiqueta, "Fecha de pago", sin distinguir en el texto si es `authorizationDate` (DGI) o `issueDate` (manual)
+  2. Detalle de una factura/gasto — insignia "RUC" (azul) / "SIN RUC" (rojo) junto al encabezado de la sección Negocio. Campos editables (alias/categoría siempre; nombre, fecha de pago, monto y método de pago solo si `cufe == nil`, ver 4.3) se marcan con un ícono de lápiz y, al guardar, un banner de confirmación (o de error si la operación falla) — sin esto, cerrar el editor sin ningún otro rastro visible dejaba al usuario sin saber si el cambio se guardó. Botón "Eliminar factura" (si tiene CUFE) o "Eliminar gasto" (manual), con diálogo de confirmación, ya que un solo toque no tiene la protección de dos pasos del swipe. La fecha se muestra bajo una sola etiqueta, "Fecha de pago", sin distinguir en el texto si es `authorizationDate` (DGI) o `issueDate` (manual)
   3. Captura (selector entre: escanear QR / CUFE manual / gasto manual)
   4. Negocios sin categorizar
   5. Gráficas / análisis

@@ -18,6 +18,7 @@ struct ExpenseListView: View {
     @State private var isShowingPending = false
     @State private var isShowingAnalytics = false
     @State private var collapsedMonths: Set<Date> = []
+    @State private var banner: ConfirmationBanner?
 
     private var filteredExpenses: [Expense] {
         let base = expenses.sorted { $0.paymentDate > $1.paymentDate }
@@ -117,7 +118,10 @@ struct ExpenseListView: View {
                 }
             }
             .sheet(isPresented: $isShowingCapture) {
-                CaptureSelectionView(onFinished: { isShowingCapture = false })
+                CaptureSelectionView(onFinished: {
+                    isShowingCapture = false
+                    banner = ConfirmationBanner(kind: .success, message: "Guardado")
+                })
             }
             .sheet(isPresented: $isShowingUncategorized) {
                 UncategorizedMerchantsView()
@@ -128,6 +132,7 @@ struct ExpenseListView: View {
             .sheet(isPresented: $isShowingAnalytics) {
                 AnalyticsView()
             }
+            .confirmationBanner($banner)
         }
     }
 }
