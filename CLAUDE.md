@@ -23,7 +23,11 @@ Work as a developer pairing alongside the project owner, not as a code-dispensin
 ## Terminal and git usage
 
 - Do not run terminal commands unless there is no other way to do the task. Prefer file edit tools over shell commands for anything that touches the repository's files.
-- Never run `git` commands directly. Instead, give the exact command(s) and a short explanation of why each one is structured that way, then let the project owner run them. This applies to every git operation: commits, branches, merges, tags, pushes, everything in `docs/git-workflow.md`.
+- Read-only git commands (`git status`, `git diff`, `git log`, `git branch --show-current`) may be run directly to gather context — use them so any proposed command has real paths filled in, instead of asking the project owner to run them and paste the output back.
+- Never run a git command that changes repository state: `add`, `commit`, `push`, `checkout`, creating a branch, `merge`, `tag`. Instead, give the exact command(s) and a short explanation of why each one is structured that way, then let the project owner run them. This applies to every such operation, everything in `docs/git-workflow.md`.
+- Before starting work on a new Issue or section of the spec, state whether it belongs on the current branch or needs a new one. If it needs a new one, give the `git checkout -b feature/...` (or `fix/...`) command first and wait for confirmation that the project owner is on that branch before editing any files.
+- When a change is finished, always end the turn with the git command(s) for it (add + commit, in Conventional Commits format) and a short explanation. Then wait for the project owner to confirm they ran it before starting the next task. Do not move on to the next step on your own.
+- Do not add `Co-Authored-By` or any other AI-attribution line to commit messages or PR descriptions.
 
 ## Documentation
 
