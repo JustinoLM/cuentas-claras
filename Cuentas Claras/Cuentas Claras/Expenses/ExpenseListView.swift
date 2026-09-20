@@ -118,9 +118,9 @@ struct ExpenseListView: View {
                 }
             }
             .sheet(isPresented: $isShowingCapture) {
-                CaptureSelectionView(onFinished: {
+                CaptureSelectionView(onFinished: { message in
                     isShowingCapture = false
-                    banner = ConfirmationBanner(kind: .success, message: "Guardado")
+                    banner = ConfirmationBanner(kind: .success, message: message)
                 })
             }
             .sheet(isPresented: $isShowingUncategorized) {

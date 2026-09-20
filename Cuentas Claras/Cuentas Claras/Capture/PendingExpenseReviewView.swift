@@ -15,7 +15,7 @@ struct PendingExpenseReviewView: View {
     @Environment(\.modelContext) private var modelContext
 
     let expense: Expense
-    var onSaved: () -> Void = {}
+    var onSaved: (String) -> Void = { _ in }
     var onDiscarded: () -> Void = {}
 
     @State private var alias = ""
@@ -84,7 +84,7 @@ struct PendingExpenseReviewView: View {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") {
                     CUFEResolution.confirm(expense, alias: alias.isEmpty ? nil : alias, in: modelContext)
-                    onSaved()
+                    onSaved("Factura guardada")
                 }
             }
         }

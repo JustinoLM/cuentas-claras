@@ -186,7 +186,7 @@ struct ExpenseDetailView: View {
                 title: "Editar alias",
                 fieldLabel: "Alias",
                 initialValue: displayName == expense.issuerName ? nil : displayName,
-                footer: "Se usa en vez de la razón social de la DGI (\(expense.issuerName)) en toda la app, para este negocio."
+                footer: "Se usa en vez de la razón social de la DGI (\(expense.issuerName)) en toda la app."
             ) { newAlias in
                 let success = MerchantCategorization.setAlias(newAlias, for: expense, in: modelContext)
                 banner = success
