@@ -31,7 +31,7 @@ struct ExpenseDetailView: View {
 
     var body: some View {
         Form {
-            Section("Negocio") {
+            Section {
                 if expense.issuerRuc != nil {
                     Button {
                         isShowingAliasEditor = true
@@ -64,6 +64,15 @@ struct ExpenseDetailView: View {
                     }
                 }
                 .foregroundStyle(.primary)
+            } header: {
+                HStack {
+                    Text("Negocio")
+                    Spacer()
+                    RUCBadge(hasRUC: expense.issuerRuc != nil)
+                }
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .textCase(.uppercase)
             }
 
             Section("Documento") {

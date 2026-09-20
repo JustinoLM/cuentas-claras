@@ -470,6 +470,7 @@ Microsoft Graph API es gratis para uso de cuenta personal — no hay Azure de pa
 ## 15. Diseño / UI
 
 - **SwiftUI**, siguiendo Human Interface Guidelines de Apple — sin librerías de UI de terceros.
+- **Paleta**: inspirada en la bandera de Panamá (`PanamaBlue`/`PanamaRed` en Assets.xcassets, con variante de modo oscuro), usada con moderación — fondo tenue + texto de color, no rellenos sólidos, para no sobrecargar. Uso confirmado: insignia "RUC" (azul) / "SIN RUC" (rojo) en la lista y el detalle de un gasto, según tenga o no `issuerRuc`.
 - **Swift Charts** (nativo) para las gráficas de la Capa 1: quincenas (con selector de año/mes), gasto por categoría, por mes, por año, y por comercio (top 10 donde más gastas, top 10 donde menos gastas, y frecuencia de visitas).
 - **VisionKit `DataScannerViewController`** para la UI de escaneo en vivo.
 - Pantallas principales:
