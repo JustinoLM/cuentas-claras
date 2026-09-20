@@ -470,7 +470,7 @@ Microsoft Graph API es gratis para uso de cuenta personal — no hay Azure de pa
 ## 15. Diseño / UI
 
 - **SwiftUI**, siguiendo Human Interface Guidelines de Apple — sin librerías de UI de terceros.
-- **Swift Charts** (nativo) para las gráficas de la Capa 1: gasto por categoría, por mes, por comercio.
+- **Swift Charts** (nativo) para las gráficas de la Capa 1: quincenas (con selector de año/mes), gasto por categoría, por mes, por año, y por comercio (top 10 donde más gastas, top 10 donde menos gastas, y frecuencia de visitas).
 - **VisionKit `DataScannerViewController`** para la UI de escaneo en vivo.
 - Pantallas principales:
   1. Lista de gastos (con filtro/búsqueda; swipe-to-delete sobre una fila, sin diálogo de confirmación — el gesto de dos pasos del swipe ya protege contra un borrado accidental)

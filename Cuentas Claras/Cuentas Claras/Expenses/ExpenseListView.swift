@@ -16,6 +16,7 @@ struct ExpenseListView: View {
     @State private var isShowingCapture = false
     @State private var isShowingUncategorized = false
     @State private var isShowingPending = false
+    @State private var isShowingAnalytics = false
 
     private var filteredExpenses: [Expense] {
         guard !searchText.isEmpty else { return expenses }
@@ -63,6 +64,13 @@ struct ExpenseListView: View {
                         Label("Pendientes", systemImage: "arrow.clockwise")
                     }
                 }
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        isShowingAnalytics = true
+                    } label: {
+                        Label("Gráficas", systemImage: "chart.bar")
+                    }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         isShowingCapture = true
@@ -79,6 +87,9 @@ struct ExpenseListView: View {
             }
             .sheet(isPresented: $isShowingPending) {
                 PendingLookupsView()
+            }
+            .sheet(isPresented: $isShowingAnalytics) {
+                AnalyticsView()
             }
         }
     }
