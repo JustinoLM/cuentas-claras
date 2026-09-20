@@ -9,9 +9,10 @@ import SwiftUI
 
 // Spec section 15, pantalla 3: selector entre las tres vías de captura (sección 4).
 struct CaptureSelectionView: View {
-    // Se llama cuando cualquiera de las tres vías guarda un Expense — quien presenta esta vista
-    // (ExpenseListView, como sheet) decide qué hacer, normalmente cerrar el sheet entero.
-    var onFinished: () -> Void = {}
+    // Se llama cuando cualquiera de las tres vías guarda un Expense, con un mensaje ya redactado
+    // según el tipo ("Factura guardada" / "Gasto guardado") — quien presenta esta vista
+    // (ExpenseListView, como sheet) decide qué hacer, normalmente cerrar el sheet y mostrarlo.
+    var onFinished: (String) -> Void = { _ in }
 
     var body: some View {
         NavigationStack {

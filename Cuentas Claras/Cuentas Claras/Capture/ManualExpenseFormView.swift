@@ -19,7 +19,7 @@ struct ManualExpenseFormView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: \Merchant.name) private var merchants: [Merchant]
 
-    var onSaved: () -> Void = {}
+    var onSaved: (String) -> Void = { _ in }
 
     @State private var issuerName = ""
     @State private var totalAmountText = ""
@@ -112,7 +112,7 @@ struct ManualExpenseFormView: View {
             source: .manual
         )
         modelContext.insert(expense)
-        onSaved()
+        onSaved("Gasto guardado")
     }
 }
 

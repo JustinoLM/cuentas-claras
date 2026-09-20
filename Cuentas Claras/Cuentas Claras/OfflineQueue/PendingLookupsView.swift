@@ -31,7 +31,7 @@ struct PendingLookupsView: View {
                                 .font(.caption)
                                 .lineLimit(1)
                                 .truncationMode(.middle)
-                            Text("\(lookup.attemptCount) intento(s) desde \(lookup.firstAttemptDate.formatted(date: .abbreviated, time: .omitted))")
+                            Text("\(attemptCountLabel(lookup.attemptCount)) desde \(lookup.firstAttemptDate.formatted(date: .abbreviated, time: .omitted))")
                                 .font(.caption2)
                                 .foregroundStyle(.secondary)
                         }
@@ -60,5 +60,9 @@ struct PendingLookupsView: View {
         isRetrying = true
         defer { isRetrying = false }
         try? await PendingLookupQueue.retryAll(in: modelContext)
+    }
+
+    private func attemptCountLabel(_ count: Int) -> String {
+        count == 1 ? "1 intento" : "\(count) intentos"
     }
 }

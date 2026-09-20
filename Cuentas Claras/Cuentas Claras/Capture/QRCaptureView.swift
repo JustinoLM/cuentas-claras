@@ -18,7 +18,7 @@ import UniformTypeIdentifiers
 struct QRCaptureView: View {
     @Environment(\.modelContext) private var modelContext
 
-    var onSaved: () -> Void = {}
+    var onSaved: (String) -> Void = { _ in }
 
     @State private var statusMessage: String?
     @State private var isProcessing = false

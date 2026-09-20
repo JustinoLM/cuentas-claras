@@ -14,7 +14,7 @@ import SwiftData
 struct CUFEManualEntryView: View {
     @Environment(\.modelContext) private var modelContext
 
-    var onSaved: () -> Void = {}
+    var onSaved: (String) -> Void = { _ in }
 
     @State private var cufe = ""
     @State private var isLookingUp = false
