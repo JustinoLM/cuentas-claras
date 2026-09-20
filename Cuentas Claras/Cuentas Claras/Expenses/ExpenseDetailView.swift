@@ -8,9 +8,8 @@
 import SwiftUI
 import SwiftData
 
-// Spec section 15, pantalla 2. Solo lectura salvo por borrar — no hay edición descrita en el spec
-// para este gasto; la categoría de gastos con RUC se ajusta desde "Negocios sin categorizar"
-// (sección 9), no aquí.
+// Spec section 15, pantalla 2. Solo lectura salvo por borrar y por categoría — cambiarla aquí en
+// un gasto con RUC cambia la de TODO el Merchant (9.3), igual que desde "Negocios sin categorizar".
 struct ExpenseDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -18,9 +17,14 @@ struct ExpenseDetailView: View {
     let expense: Expense
 
     @State private var isShowingDeleteConfirmation = false
+    @State private var isShowingCategoryEditor = false
 
     private var displayName: String {
         MerchantCategorization.displayName(for: expense, in: modelContext)
+    }
+
+    private var resolvedCategory: String? {
+        try? MerchantCategorization.category(for: expense, in: modelContext)
     }
 
     var body: some View {
@@ -33,7 +37,12 @@ struct ExpenseDetailView: View {
                 if displayName != expense.issuerName {
                     LabeledContent("Razón social (DGI)", value: expense.issuerName)
                 }
-                LabeledContent("Categoría", value: expense.category ?? "Sin categorizar")
+                Button {
+                    isShowingCategoryEditor = true
+                } label: {
+                    LabeledContent("Categoría", value: resolvedCategory ?? "Sin categorizar")
+                }
+                .foregroundStyle(.primary)
             }
 
             Section("Documento") {
@@ -94,6 +103,73 @@ struct ExpenseDetailView: View {
             }
         } message: {
             Text("No se puede deshacer.")
+        }
+        .sheet(isPresented: $isShowingCategoryEditor) {
+            CategoryEditorSheet(
+                currentCategory: resolvedCategory,
+                appliesToWholeBusiness: expense.issuerRuc != nil,
+                existingCategories: MerchantCategorization.existingCategories(in: modelContext)
+            ) { newCategory in
+                MerchantCategorization.setCategory(newCategory, for: expense, in: modelContext)
+            }
+        }
+    }
+}
+
+private struct CategoryEditorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let currentCategory: String?
+    let appliesToWholeBusiness: Bool
+    let existingCategories: [String]
+    let onSave: (String?) -> Void
+
+    @State private var category: String
+
+    init(currentCategory: String?, appliesToWholeBusiness: Bool, existingCategories: [String], onSave: @escaping (String?) -> Void) {
+        self.currentCategory = currentCategory
+        self.appliesToWholeBusiness = appliesToWholeBusiness
+        self.existingCategories = existingCategories
+        self.onSave = onSave
+        _category = State(initialValue: currentCategory ?? "")
+    }
+
+    private var suggestions: [String] {
+        guard !category.isEmpty else { return existingCategories }
+        return existingCategories.filter { $0.localizedCaseInsensitiveContains(category) }
+    }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section {
+                    TextField("Categoría", text: $category)
+                } footer: {
+                    if appliesToWholeBusiness {
+                        Text("Este cambio aplica a todas las facturas de este negocio (mismo RUC), no solo a esta.")
+                    }
+                }
+
+                if !suggestions.isEmpty {
+                    Section("Ya usadas") {
+                        ForEach(suggestions, id: \.self) { suggestion in
+                            Button(suggestion) { category = suggestion }
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Editar categoría")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancelar") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Guardar") {
+                        onSave(category.isEmpty ? nil : category)
+                        dismiss()
+                    }
+                }
+            }
         }
     }
 }

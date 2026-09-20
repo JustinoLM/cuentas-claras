@@ -310,9 +310,10 @@ Al resolver exitosamente, se crea el `Expense` correspondiente (pasando por la d
 **Sin IA, sin servidor.** Puramente manual, basada en la tabla `Merchant` (sección 3.3):
 
 1. Al guardar un `Expense` con `issuerRuc` nuevo, se crea automáticamente un `Merchant` con `category = nil`.
-2. Pantalla "Negocios sin categorizar": lista de `Merchant` con `category == nil`, el usuario le asigna categoría (texto libre o de una lista corta que el usuario mismo mantiene).
+2. Pantalla "Negocios sin categorizar": lista de `Merchant` con `category == nil`, el usuario le asigna categoría (texto libre o de una lista corta que el usuario mismo mantiene). Incluye también los `Expense` manuales (`cufe == nil`) sin categoría propia — un gasto manual nunca crea un `Merchant`, así que sin esto no aparecería en ningún lado para recordarle al usuario categorizarlo.
 3. Todos los `Expense` de ese RUC heredan la categoría a partir de ahí (vía join, no se duplica el dato en cada factura — `Expense.category` se resuelve leyendo `Merchant.category` por `issuerRuc`; para gastos manuales sin RUC, se asigna directo en `Expense.category`).
-4. Las gráficas de la Capa 1 agrupan por esta categoría. Lo no categorizado cae en un bucket "Sin categorizar" hasta que el usuario lo arregle.
+4. La categoría también se puede corregir desde el detalle de un gasto (pantalla 2, sección 15) — si el gasto tiene RUC, el cambio aplica a `Merchant.category` y por lo tanto a todas sus facturas a la vez, no solo a la que se está viendo.
+5. Las gráficas de la Capa 1 agrupan por esta categoría. Lo no categorizado cae en un bucket "Sin categorizar" hasta que el usuario lo arregle.
 
 ### 9.1 Alias del negocio (nombre visible)
 
