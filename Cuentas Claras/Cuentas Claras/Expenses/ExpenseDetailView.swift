@@ -88,7 +88,7 @@ struct ExpenseDetailView: View {
             if expense.cufe == nil {
                 Section {
                     NavigationLink("Editar gasto") {
-                        ManualExpenseFormView(existingExpense: expense, onSaved: { dismiss() })
+                        ManualExpenseFormView(existingExpense: expense)
                     }
                 }
             }

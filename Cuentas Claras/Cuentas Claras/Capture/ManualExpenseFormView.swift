@@ -13,6 +13,7 @@ import SwiftData
 // gasto siempre sale directo de Expense.category (ver MerchantCategorization).
 struct ManualExpenseFormView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @Query(sort: \Merchant.name) private var merchants: [Merchant]
 
     // nil = capturando uno nuevo (Vía 3). No nil = editando un gasto manual existente — no pasa
@@ -112,6 +113,7 @@ struct ManualExpenseFormView: View {
             existingExpense.totalAmount = totalAmount
             existingExpense.issueDate = date
             existingExpense.category = category.isEmpty ? nil : category
+            dismiss()
         } else {
             let expense = Expense(
                 documentType: "MANUAL",
@@ -123,8 +125,8 @@ struct ManualExpenseFormView: View {
                 source: .manual
             )
             modelContext.insert(expense)
+            onSaved()
         }
-        onSaved()
     }
 }
 
