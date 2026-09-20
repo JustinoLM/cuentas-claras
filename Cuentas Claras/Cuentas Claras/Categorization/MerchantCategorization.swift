@@ -65,4 +65,16 @@ enum MerchantCategorization {
         let expenseCategories = ((try? context.fetch(FetchDescriptor<Expense>())) ?? []).compactMap(\.category)
         return Array(Set(merchantCategories).union(expenseCategories)).sorted()
     }
+
+    // 9.1: el alias vive en Merchant, así que solo aplica a gastos con RUC — un gasto manual no
+    // tiene Merchant al que amarrarlo (ya tiene su propio nombre editable vía "Editar gasto").
+    static func setAlias(_ alias: String?, for expense: Expense, in context: ModelContext) {
+        guard let issuerRuc = expense.issuerRuc else { return }
+
+        var descriptor = FetchDescriptor<Merchant>(predicate: #Predicate { $0.ruc == issuerRuc })
+        descriptor.fetchLimit = 1
+        if let merchant = try? context.fetch(descriptor).first {
+            merchant.alias = alias
+        }
+    }
 }

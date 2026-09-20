@@ -15,6 +15,7 @@ struct ExpenseListView: View {
     @State private var searchText = ""
     @State private var isShowingCapture = false
     @State private var isShowingUncategorized = false
+    @State private var isShowingPending = false
 
     private var filteredExpenses: [Expense] {
         guard !searchText.isEmpty else { return expenses }
@@ -55,6 +56,13 @@ struct ExpenseListView: View {
                         Label("Sin categorizar", systemImage: "tag")
                     }
                 }
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        isShowingPending = true
+                    } label: {
+                        Label("Pendientes", systemImage: "arrow.clockwise")
+                    }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         isShowingCapture = true
@@ -68,6 +76,9 @@ struct ExpenseListView: View {
             }
             .sheet(isPresented: $isShowingUncategorized) {
                 UncategorizedMerchantsView()
+            }
+            .sheet(isPresented: $isShowingPending) {
+                PendingLookupsView()
             }
         }
     }

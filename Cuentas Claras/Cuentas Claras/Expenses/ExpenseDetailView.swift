@@ -19,6 +19,7 @@ struct ExpenseDetailView: View {
 
     @State private var isShowingDeleteConfirmation = false
     @State private var isShowingCategoryEditor = false
+    @State private var isShowingAliasEditor = false
 
     private var displayName: String {
         MerchantCategorization.displayName(for: expense, in: modelContext)
@@ -31,7 +32,24 @@ struct ExpenseDetailView: View {
     var body: some View {
         Form {
             Section("Negocio") {
-                LabeledContent("Nombre", value: displayName)
+                if expense.issuerRuc != nil {
+                    Button {
+                        isShowingAliasEditor = true
+                    } label: {
+                        LabeledContent("Nombre") {
+                            EditableValueLabel(displayName)
+                        }
+                    }
+                    .foregroundStyle(.primary)
+                } else {
+                    NavigationLink {
+                        ManualExpenseFormView(existingExpense: expense)
+                    } label: {
+                        LabeledContent("Nombre") {
+                            EditableValueLabel(displayName)
+                        }
+                    }
+                }
                 if let issuerRuc = expense.issuerRuc {
                     LabeledContent("RUC", value: issuerRuc)
                 }
@@ -41,7 +59,9 @@ struct ExpenseDetailView: View {
                 Button {
                     isShowingCategoryEditor = true
                 } label: {
-                    LabeledContent("Categoría", value: resolvedCategory ?? "Sin categorizar")
+                    LabeledContent("Categoría") {
+                        EditableValueLabel(resolvedCategory ?? "Sin categorizar")
+                    }
                 }
                 .foregroundStyle(.primary)
             }
@@ -80,7 +100,9 @@ struct ExpenseDetailView: View {
 
             Section("Totales") {
                 LabeledContent("Total", value: expense.totalAmount, format: .currency(code: "USD"))
-                LabeledContent("ITBMS", value: expense.totalItbms, format: .currency(code: "USD"))
+                if expense.cufe != nil {
+                    LabeledContent("ITBMS", value: expense.totalItbms, format: .currency(code: "USD"))
+                }
                 if let paymentMethod = expense.paymentMethod {
                     LabeledContent("Método de pago", value: paymentMethod)
                 }
@@ -114,67 +136,104 @@ struct ExpenseDetailView: View {
             Text("No se puede deshacer.")
         }
         .sheet(isPresented: $isShowingCategoryEditor) {
-            CategoryEditorSheet(
-                currentCategory: resolvedCategory,
-                appliesToWholeBusiness: expense.issuerRuc != nil,
-                existingCategories: MerchantCategorization.existingCategories(in: modelContext)
+            ValueEditorSheet(
+                title: "Editar categoría",
+                fieldLabel: "Categoría",
+                initialValue: resolvedCategory,
+                footer: expense.issuerRuc != nil ? "Este cambio aplica a todas las facturas de este negocio (mismo RUC), no solo a esta." : nil,
+                suggestions: MerchantCategorization.existingCategories(in: modelContext)
             ) { newCategory in
                 MerchantCategorization.setCategory(newCategory, for: expense, in: modelContext)
+            }
+        }
+        .sheet(isPresented: $isShowingAliasEditor) {
+            ValueEditorSheet(
+                title: "Editar alias",
+                fieldLabel: "Alias",
+                initialValue: displayName == expense.issuerName ? nil : displayName,
+                footer: "Se usa en vez de la razón social de la DGI (\(expense.issuerName)) en toda la app, para este negocio."
+            ) { newAlias in
+                MerchantCategorization.setAlias(newAlias, for: expense, in: modelContext)
             }
         }
     }
 }
 
-private struct CategoryEditorSheet: View {
-    @Environment(\.dismiss) private var dismiss
+// Compartido por el editor de categoría y de alias — mismo patrón de campo de texto + sugerencias
+// opcionales + Cancelar/Guardar.
+// Marca visualmente una fila como tocable — sin esto no hay ninguna señal de que "Nombre" y
+// "Categoría" se puedan editar, se ven igual que cualquier otra fila de solo lectura.
+private struct EditableValueLabel: View {
+    let value: String
 
-    let currentCategory: String?
-    let appliesToWholeBusiness: Bool
-    let existingCategories: [String]
-    let onSave: (String?) -> Void
-
-    @State private var category: String
-
-    init(currentCategory: String?, appliesToWholeBusiness: Bool, existingCategories: [String], onSave: @escaping (String?) -> Void) {
-        self.currentCategory = currentCategory
-        self.appliesToWholeBusiness = appliesToWholeBusiness
-        self.existingCategories = existingCategories
-        self.onSave = onSave
-        _category = State(initialValue: currentCategory ?? "")
+    init(_ value: String) {
+        self.value = value
     }
 
-    private var suggestions: [String] {
-        guard !category.isEmpty else { return existingCategories }
-        return existingCategories.filter { $0.localizedCaseInsensitiveContains(category) }
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(value)
+            Image(systemName: "pencil")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+        }
+    }
+}
+
+private struct ValueEditorSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    let title: String
+    let fieldLabel: String
+    let initialValue: String?
+    var footer: String?
+    var suggestions: [String] = []
+    let onSave: (String?) -> Void
+
+    @State private var value: String
+
+    init(title: String, fieldLabel: String, initialValue: String?, footer: String? = nil, suggestions: [String] = [], onSave: @escaping (String?) -> Void) {
+        self.title = title
+        self.fieldLabel = fieldLabel
+        self.initialValue = initialValue
+        self.footer = footer
+        self.suggestions = suggestions
+        self.onSave = onSave
+        _value = State(initialValue: initialValue ?? "")
+    }
+
+    private var filteredSuggestions: [String] {
+        guard !value.isEmpty else { return suggestions }
+        return suggestions.filter { $0.localizedCaseInsensitiveContains(value) && $0 != value }
     }
 
     var body: some View {
         NavigationStack {
             Form {
                 Section {
-                    TextField("Categoría", text: $category)
+                    TextField(fieldLabel, text: $value)
                 } footer: {
-                    if appliesToWholeBusiness {
-                        Text("Este cambio aplica a todas las facturas de este negocio (mismo RUC), no solo a esta.")
+                    if let footer {
+                        Text(footer)
                     }
                 }
 
-                if !suggestions.isEmpty {
+                if !filteredSuggestions.isEmpty {
                     Section("Ya usadas") {
-                        ForEach(suggestions, id: \.self) { suggestion in
-                            Button(suggestion) { category = suggestion }
+                        ForEach(filteredSuggestions, id: \.self) { suggestion in
+                            Button(suggestion) { value = suggestion }
                         }
                     }
                 }
             }
-            .navigationTitle("Editar categoría")
+            .navigationTitle(title)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancelar") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Guardar") {
-                        onSave(category.isEmpty ? nil : category)
+                        onSave(value.isEmpty ? nil : value)
                         dismiss()
                     }
                 }

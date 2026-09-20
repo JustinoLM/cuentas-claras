@@ -303,7 +303,7 @@ Cuando una consulta a la DGI falla por error de red (no por CUFE inválido/inexi
 - Revisar conectividad **cada vez que la app vuelve a primer plano** (`scenePhase == .active` o equivalente) — si hay red, reintentar automáticamente todos los `PendingLookup`.
 - Botón manual "Reintentar ahora" en una pantalla de "Pendientes", como respaldo.
 
-Al resolver exitosamente, se crea el `Expense` correspondiente (pasando por la deduplicación de la sección 6) y se borra el `PendingLookup`.
+Al resolver exitosamente, se crea el `Expense` correspondiente (pasando por la deduplicación de la sección 6 y el registro de `Merchant` de la sección 9) y se borra el `PendingLookup`. A diferencia de las vías 1 y 2 en su flujo interactivo, esto **no** pasa por la pantalla de revisión de 4.4 — el reintento corre en segundo plano, sin garantía de que el usuario esté mirando la pantalla en ese momento. El `Merchant` sí se crea igual, para poder categorizarlo y ponerle alias después desde su detalle o desde "Negocios sin categorizar".
 
 ---
 
