@@ -34,7 +34,13 @@ enum PendingLookupQueue {
                 lookup.attemptCount += 1
 
             case .parsed(.success(let expense)):
+                // No pasa por la pantalla de revisión (4.4) — el reintento corre en segundo plano,
+                // sin garantía de que el usuario esté mirando. Sí crea el Merchant, igual que las
+                // vías interactivas, para que se pueda categorizar y ponerle alias después.
                 if try ExpenseDeduplicator.existingExpense(withCufe: lookup.cufe, in: context) == nil {
+                    if let issuerRuc = expense.issuerRuc {
+                        try? MerchantCategorization.registerMerchantIfNeeded(issuerRuc: issuerRuc, issuerName: expense.issuerName, in: context)
+                    }
                     context.insert(expense)
                 }
                 context.delete(lookup)
