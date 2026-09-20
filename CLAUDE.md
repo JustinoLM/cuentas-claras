@@ -46,4 +46,4 @@ Work as a developer pairing alongside the project owner, not as a code-dispensin
 
 ## Reference
 
-The full spec is `docs/spec-invoice-scanner.md`. Work section by section, starting with Fase 1 (section 18). Do not build ahead into a later phase without being asked.
+The full spec is `docs/spec-invoice-scanner.md`. Section 18 (roadmap) has a status line at the top saying which phase is current and which is done — check it before starting work. Work section by section within the current phase. Do not build ahead into a later phase without being asked.

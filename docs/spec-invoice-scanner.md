@@ -513,7 +513,9 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 
 ## 18. Roadmap por fases
 
-### Fase 1 — Núcleo (Capa 1)
+**Estado**: Fase 1 completa — tag `v0.1.0`. Detalle del pulido hecho sobre lo básico en el issue #31 (cerrado). Ideas anotadas para evaluar más adelante, sin diseñar todavía: pagos recurrentes (issue #32) e inversiones/ahorros (issue #42) — ninguna de las dos es parte de ninguna fase todavía. Siguiente: Fase 2.
+
+### Fase 1 — Núcleo (Capa 1) ✅
 - Modelos SwiftData (sección 3)
 - Parseo DGI completo con tests contra fixtures (secciones 5, 16)
 - Las tres vías de captura (sección 4)

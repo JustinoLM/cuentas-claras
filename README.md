@@ -2,6 +2,8 @@
 
 iOS app to scan Panama DGI electronic invoices (SFEP) and track personal expenses, local-first.
 
+**Status**: Fase 1 (core, local-only) complete — tag `v0.1.0`. See `docs/spec-invoice-scanner.md` section 18 for the roadmap and current phase.
+
 ## What it does
 
 Scans the QR code on a Panama electronic invoice, looks up the CUFE against the DGI's public consultation endpoint, and stores the parsed invoice locally. Expenses can be browsed and charted in the app with no account required. Exporting to Excel (via a file the user picks) and syncing to OneDrive are optional, on top of that local core.
@@ -16,9 +18,9 @@ Full rationale and the complete technical spec: [`docs/spec-invoice-scanner.md`]
 
 ## Requirements
 
-- Xcode 16+
-- iOS 16+ (required for `VisionKit`'s `DataScannerViewController`)
-- A physical iPhone for testing the QR scanner — the Simulator does not support live camera capture
+- Xcode 27+ (the project's pbxproj format needs it; CI runs on the `xcode-27` runner image for the same reason — see `docs/git-workflow.md`)
+- iOS 18+ deployment target (real minimum is iOS 17, for SwiftData; 18 leaves a margin)
+- A physical iPhone for testing the QR scanner — the Simulator does not support live camera capture (`DataScannerViewController.isSupported` is always `false` there)
 
 ## Setup
 
@@ -30,7 +32,7 @@ Full rationale and the complete technical spec: [`docs/spec-invoice-scanner.md`]
 
 ```
 docs/                      Full spec and development process docs
-Cuentas Claras/             Xcode project (app + unit tests + UI tests)
+Cuentas Claras/             Xcode project (app + unit tests)
 ```
 
 ## Development process
