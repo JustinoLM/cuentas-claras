@@ -78,11 +78,7 @@ struct ExpenseDetailView: View {
                             .multilineTextAlignment(.trailing)
                     }
                 }
-                if let authorizationDate = expense.authorizationDate {
-                    LabeledContent("Autorización", value: authorizationDate.formatted(date: .abbreviated, time: .shortened))
-                } else if let issueDate = expense.issueDate {
-                    LabeledContent("Fecha", value: issueDate.formatted(date: .abbreviated, time: .omitted))
-                }
+                LabeledContent("Fecha de pago", value: expense.paymentDate.formatted(date: .abbreviated, time: .omitted))
             }
 
             if !expense.items.isEmpty {
@@ -116,7 +112,7 @@ struct ExpenseDetailView: View {
             }
 
             Section {
-                Button("Eliminar gasto", role: .destructive) {
+                Button(expense.cufe != nil ? "Eliminar factura" : "Eliminar gasto", role: .destructive) {
                     isShowingDeleteConfirmation = true
                 }
             }
@@ -124,7 +120,7 @@ struct ExpenseDetailView: View {
         .textSelection(.enabled)
         .navigationTitle(displayName)
         .confirmationDialog(
-            "¿Eliminar este gasto?",
+            expense.cufe != nil ? "¿Eliminar esta factura?" : "¿Eliminar este gasto?",
             isPresented: $isShowingDeleteConfirmation,
             titleVisibility: .visible
         ) {
@@ -159,8 +155,6 @@ struct ExpenseDetailView: View {
     }
 }
 
-// Compartido por el editor de categoría y de alias — mismo patrón de campo de texto + sugerencias
-// opcionales + Cancelar/Guardar.
 // Marca visualmente una fila como tocable — sin esto no hay ninguna señal de que "Nombre" y
 // "Categoría" se puedan editar, se ven igual que cualquier otra fila de solo lectura.
 private struct EditableValueLabel: View {
@@ -180,6 +174,8 @@ private struct EditableValueLabel: View {
     }
 }
 
+// Compartido por el editor de categoría y de alias — mismo patrón de campo de texto + sugerencias
+// opcionales + Cancelar/Guardar.
 private struct ValueEditorSheet: View {
     @Environment(\.dismiss) private var dismiss
 

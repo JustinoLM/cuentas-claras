@@ -473,8 +473,8 @@ Microsoft Graph API es gratis para uso de cuenta personal — no hay Azure de pa
 - **Swift Charts** (nativo) para las gráficas de la Capa 1: quincenas (con selector de año/mes), gasto por categoría, por mes, por año, y por comercio (top 10 donde más gastas, top 10 donde menos gastas, y frecuencia de visitas).
 - **VisionKit `DataScannerViewController`** para la UI de escaneo en vivo.
 - Pantallas principales:
-  1. Lista de gastos (con filtro/búsqueda; swipe-to-delete sobre una fila, sin diálogo de confirmación — el gesto de dos pasos del swipe ya protege contra un borrado accidental)
-  2. Detalle de un gasto (botón "Eliminar gasto", con diálogo de confirmación — un solo toque no tiene esa protección de dos pasos)
+  1. Mis Facturas (lista raíz, mezcla facturas DGI y gastos manuales; con filtro/búsqueda, agrupada por mes en secciones colapsables — sin esto, años de datos serían una lista inmanejable; swipe-to-delete sobre una fila, sin diálogo de confirmación porque el gesto de dos pasos del swipe ya protege contra un borrado accidental). Se ordena y agrupa por `Expense.paymentDate` (`authorizationDate` ?? `issueDate` ?? `scanDate`) — nunca por `scanDate` a solas, que es cuándo se guardó en la app y puede no coincidir con cuándo se hizo la compra real.
+  2. Detalle de una factura/gasto — botón "Eliminar factura" (si tiene CUFE) o "Eliminar gasto" (manual), con diálogo de confirmación, ya que un solo toque no tiene la protección de dos pasos del swipe. La fecha se muestra bajo una sola etiqueta, "Fecha de pago", sin distinguir en el texto si es `authorizationDate` (DGI) o `issueDate` (manual)
   3. Captura (selector entre: escanear QR / CUFE manual / gasto manual)
   4. Negocios sin categorizar
   5. Gráficas / análisis

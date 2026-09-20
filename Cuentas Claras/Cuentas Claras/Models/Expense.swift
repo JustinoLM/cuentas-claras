@@ -82,3 +82,11 @@ final class Expense {
         self.layer3SyncState = layer3SyncState
     }
 }
+
+extension Expense {
+    // La fecha real de la factura/pago — nunca scanDate, que es solo cuándo se guardó en la app y
+    // puede ser días después de la compra real (ej. si capturas un PDF viejo).
+    var paymentDate: Date {
+        authorizationDate ?? issueDate ?? scanDate
+    }
+}

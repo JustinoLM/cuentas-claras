@@ -17,11 +17,26 @@ struct ExpenseListView: View {
     @State private var isShowingUncategorized = false
     @State private var isShowingPending = false
     @State private var isShowingAnalytics = false
+    @State private var collapsedMonths: Set<Date> = []
 
     private var filteredExpenses: [Expense] {
-        guard !searchText.isEmpty else { return expenses }
-        return expenses.filter {
+        let base = expenses.sorted { $0.paymentDate > $1.paymentDate }
+        guard !searchText.isEmpty else { return base }
+        return base.filter {
             MerchantCategorization.displayName(for: $0, in: modelContext).localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
+    // Agrupado por mes (usando paymentDate, no scanDate) — con años de datos, una lista plana se
+    // vuelve inmanejable.
+    private var groupedExpenses: [(month: Date, expenses: [Expense])] {
+        let calendar = Calendar.current
+        let groups = Dictionary(grouping: filteredExpenses) { expense -> Date in
+            let components = calendar.dateComponents([.year, .month], from: expense.paymentDate)
+            return calendar.date(from: components) ?? expense.paymentDate
+        }
+        return groups.keys.sorted(by: >).map { month in
+            (month, groups[month] ?? [])
         }
     }
 
@@ -30,25 +45,47 @@ struct ExpenseListView: View {
             Group {
                 if expenses.isEmpty {
                     ContentUnavailableView(
-                        "Sin gastos todavía",
+                        "Sin facturas todavía",
                         systemImage: "tray",
                         description: Text("Toca + para capturar tu primera factura.")
                     )
                 } else {
                     List {
-                        ForEach(filteredExpenses) { expense in
-                            NavigationLink {
-                                ExpenseDetailView(expense: expense)
+                        ForEach(groupedExpenses, id: \.month) { group in
+                            DisclosureGroup(
+                                isExpanded: Binding(
+                                    get: { !collapsedMonths.contains(group.month) },
+                                    set: { isExpanded in
+                                        if isExpanded {
+                                            collapsedMonths.remove(group.month)
+                                        } else {
+                                            collapsedMonths.insert(group.month)
+                                        }
+                                    }
+                                )
+                            ) {
+                                ForEach(group.expenses) { expense in
+                                    NavigationLink {
+                                        ExpenseDetailView(expense: expense)
+                                    } label: {
+                                        ExpenseRow(expense: expense)
+                                    }
+                                }
+                                .onDelete { offsets in
+                                    for index in offsets {
+                                        modelContext.delete(group.expenses[index])
+                                    }
+                                }
                             } label: {
-                                ExpenseRow(expense: expense)
+                                Text(group.month.formatted(.dateTime.month(.wide).year()))
+                                    .font(.headline)
                             }
                         }
-                        .onDelete(perform: deleteExpenses)
                     }
                     .searchable(text: $searchText, prompt: "Buscar por negocio")
                 }
             }
-            .navigationTitle("Gastos")
+            .navigationTitle("Mis Facturas")
             .toolbar {
                 ToolbarItem(placement: .secondaryAction) {
                     Button {
@@ -93,12 +130,6 @@ struct ExpenseListView: View {
             }
         }
     }
-
-    private func deleteExpenses(at offsets: IndexSet) {
-        for index in offsets {
-            modelContext.delete(filteredExpenses[index])
-        }
-    }
 }
 
 private struct ExpenseRow: View {
@@ -110,7 +141,7 @@ private struct ExpenseRow: View {
             VStack(alignment: .leading) {
                 Text(MerchantCategorization.displayName(for: expense, in: modelContext))
                     .font(.headline)
-                Text(expense.scanDate, format: .dateTime.day().month().year())
+                Text(expense.paymentDate, format: .dateTime.day().month().year())
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
