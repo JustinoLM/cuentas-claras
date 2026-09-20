@@ -139,8 +139,11 @@ private struct ExpenseRow: View {
     var body: some View {
         HStack {
             VStack(alignment: .leading) {
-                Text(MerchantCategorization.displayName(for: expense, in: modelContext))
-                    .font(.headline)
+                HStack(spacing: 6) {
+                    Text(MerchantCategorization.displayName(for: expense, in: modelContext))
+                        .font(.headline)
+                    RUCBadge(hasRUC: expense.issuerRuc != nil)
+                }
                 Text(expense.paymentDate, format: .dateTime.day().month().year())
                     .font(.caption)
                     .foregroundStyle(.secondary)
