@@ -8,8 +8,9 @@
 import SwiftUI
 import SwiftData
 
-// Spec section 15, pantalla 2. Solo lectura salvo por borrar y por categoría — cambiarla aquí en
-// un gasto con RUC cambia la de TODO el Merchant (9.3), igual que desde "Negocios sin categorizar".
+// Spec section 15, pantalla 2. Solo lectura salvo por borrar, categoría (cambiarla aquí en un
+// gasto con RUC cambia la de TODO el Merchant, 9.3) y edición completa para gastos manuales
+// (cufe == nil) — esos los tecleó el usuario y pueden tener errores, a diferencia de los de DGI.
 struct ExpenseDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -84,6 +85,14 @@ struct ExpenseDetailView: View {
                     LabeledContent("Método de pago", value: paymentMethod)
                 }
             }
+            if expense.cufe == nil {
+                Section {
+                    NavigationLink("Editar gasto") {
+                        ManualExpenseFormView(existingExpense: expense)
+                    }
+                }
+            }
+
             Section {
                 Button("Eliminar gasto", role: .destructive) {
                     isShowingDeleteConfirmation = true

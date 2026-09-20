@@ -13,16 +13,29 @@ import SwiftData
 // gasto siempre sale directo de Expense.category (ver MerchantCategorization).
 struct ManualExpenseFormView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
     @Query(sort: \Merchant.name) private var merchants: [Merchant]
 
+    // nil = capturando uno nuevo (Vía 3). No nil = editando un gasto manual existente — no pasa
+    // por la verificación de duplicados (6.2), no tendría sentido comparar el gasto contra sí mismo.
+    var existingExpense: Expense?
     var onSaved: () -> Void = {}
 
-    @State private var issuerName = ""
-    @State private var totalAmountText = ""
-    @State private var date = Date()
-    @State private var category = ""
+    @State private var issuerName: String
+    @State private var totalAmountText: String
+    @State private var date: Date
+    @State private var category: String
     @State private var duplicateCandidate: Expense?
     @State private var showingDuplicateAlert = false
+
+    init(existingExpense: Expense? = nil, onSaved: @escaping () -> Void = {}) {
+        self.existingExpense = existingExpense
+        self.onSaved = onSaved
+        _issuerName = State(initialValue: existingExpense?.issuerName ?? "")
+        _totalAmountText = State(initialValue: existingExpense?.totalAmount.formatted(.number.grouping(.never)) ?? "")
+        _date = State(initialValue: existingExpense?.issueDate ?? Date())
+        _category = State(initialValue: existingExpense?.category ?? "")
+    }
 
     private var matchingMerchants: [Merchant] {
         guard !issuerName.isEmpty else { return [] }
@@ -52,7 +65,7 @@ struct ManualExpenseFormView: View {
                 TextField("Categoría", text: $category)
             }
         }
-        .navigationTitle("Gasto manual")
+        .navigationTitle(existingExpense == nil ? "Gasto manual" : "Editar gasto")
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
                 Button("Guardar") { save() }
@@ -62,7 +75,7 @@ struct ManualExpenseFormView: View {
         .alert("Gasto similar encontrado", isPresented: $showingDuplicateAlert, presenting: duplicateCandidate) { existing in
             Button("Agregar igual", role: .destructive) {
                 if let amount = parsedAmount {
-                    insertExpense(totalAmount: amount)
+                    commit(totalAmount: amount)
                 }
             }
             Button("Cancelar", role: .cancel) {}
@@ -73,6 +86,11 @@ struct ManualExpenseFormView: View {
 
     private func save() {
         guard let amount = parsedAmount else { return }
+
+        guard existingExpense == nil else {
+            commit(totalAmount: amount)
+            return
+        }
 
         if let existing = try? ExpenseDeduplicator.possibleDuplicate(
             issuerRuc: nil,
@@ -86,21 +104,29 @@ struct ManualExpenseFormView: View {
             return
         }
 
-        insertExpense(totalAmount: amount)
+        commit(totalAmount: amount)
     }
 
-    private func insertExpense(totalAmount: Decimal) {
-        let expense = Expense(
-            documentType: "MANUAL",
-            issueDate: date,
-            issuerName: issuerName,
-            totalAmount: totalAmount,
-            totalItbms: 0,
-            category: category.isEmpty ? nil : category,
-            source: .manual
-        )
-        modelContext.insert(expense)
-        onSaved()
+    private func commit(totalAmount: Decimal) {
+        if let existingExpense {
+            existingExpense.issuerName = issuerName
+            existingExpense.totalAmount = totalAmount
+            existingExpense.issueDate = date
+            existingExpense.category = category.isEmpty ? nil : category
+            dismiss()
+        } else {
+            let expense = Expense(
+                documentType: "MANUAL",
+                issueDate: date,
+                issuerName: issuerName,
+                totalAmount: totalAmount,
+                totalItbms: 0,
+                category: category.isEmpty ? nil : category,
+                source: .manual
+            )
+            modelContext.insert(expense)
+            onSaved()
+        }
     }
 }
 
