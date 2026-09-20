@@ -64,7 +64,7 @@ enum ExpenseAnalytics {
         let calendar = Calendar.current
         var totals: [Date: Decimal] = [:]
         for expense in expenses {
-            let date = expense.authorizationDate ?? expense.issueDate ?? expense.scanDate
+            let date = expense.paymentDate
             let components = calendar.dateComponents([.year, .month], from: date)
             let monthStart = calendar.date(from: components) ?? date
             totals[monthStart, default: 0] += expense.totalAmount
@@ -85,7 +85,7 @@ enum ExpenseAnalytics {
         let calendar = Calendar.current
         var totals: [Int: Decimal] = [:]
         for expense in expenses {
-            let date = expense.authorizationDate ?? expense.issueDate ?? expense.scanDate
+            let date = expense.paymentDate
             let year = calendar.component(.year, from: date)
             totals[year, default: 0] += expense.totalAmount
         }
@@ -104,7 +104,7 @@ enum ExpenseAnalytics {
 
     static func availableYears(for expenses: [Expense]) -> [Int] {
         let calendar = Calendar.current
-        let years = expenses.map { calendar.component(.year, from: $0.authorizationDate ?? $0.issueDate ?? $0.scanDate) }
+        let years = expenses.map { calendar.component(.year, from: $0.paymentDate) }
         return Array(Set(years)).sorted(by: >)
     }
 
@@ -116,7 +116,7 @@ enum ExpenseAnalytics {
         var secondHalf: Decimal = 0
 
         for expense in expenses {
-            let date = expense.authorizationDate ?? expense.issueDate ?? expense.scanDate
+            let date = expense.paymentDate
             let components = calendar.dateComponents([.year, .month, .day], from: date)
             guard components.year == year, components.month == month, let day = components.day else { continue }
 

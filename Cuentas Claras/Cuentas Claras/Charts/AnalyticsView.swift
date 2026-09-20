@@ -61,7 +61,7 @@ struct AnalyticsView: View {
                     ContentUnavailableView(
                         "Sin datos todavía",
                         systemImage: "chart.bar",
-                        description: Text("Captura algún gasto para ver las gráficas.")
+                        description: Text("Captura alguna factura para ver las gráficas.")
                     )
                 } else {
                     List {
