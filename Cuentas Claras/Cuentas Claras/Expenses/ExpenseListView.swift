@@ -14,6 +14,7 @@ struct ExpenseListView: View {
     @Query(sort: \Expense.scanDate, order: .reverse) private var expenses: [Expense]
     @State private var searchText = ""
     @State private var isShowingCapture = false
+    @State private var isShowingUncategorized = false
 
     private var filteredExpenses: [Expense] {
         guard !searchText.isEmpty else { return expenses }
@@ -47,6 +48,13 @@ struct ExpenseListView: View {
             }
             .navigationTitle("Gastos")
             .toolbar {
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        isShowingUncategorized = true
+                    } label: {
+                        Label("Sin categorizar", systemImage: "tag")
+                    }
+                }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
                         isShowingCapture = true
@@ -57,6 +65,9 @@ struct ExpenseListView: View {
             }
             .sheet(isPresented: $isShowingCapture) {
                 CaptureSelectionView(onFinished: { isShowingCapture = false })
+            }
+            .sheet(isPresented: $isShowingUncategorized) {
+                UncategorizedMerchantsView()
             }
         }
     }

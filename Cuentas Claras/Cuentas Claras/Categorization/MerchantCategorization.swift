@@ -42,4 +42,27 @@ enum MerchantCategorization {
         guard let merchant = try? context.fetch(descriptor).first else { return expense.issuerName }
         return merchant.alias ?? merchant.name
     }
+
+    // Cambiar la categoría de un Expense con RUC cambia la de TODO su Merchant (9.3) — nunca se
+    // toca Expense.category para esos casos. Para manuales (sin RUC) sí es directo en el Expense.
+    static func setCategory(_ category: String?, for expense: Expense, in context: ModelContext) {
+        guard let issuerRuc = expense.issuerRuc else {
+            expense.category = category
+            return
+        }
+
+        var descriptor = FetchDescriptor<Merchant>(predicate: #Predicate { $0.ruc == issuerRuc })
+        descriptor.fetchLimit = 1
+        if let merchant = try? context.fetch(descriptor).first {
+            merchant.category = category
+        }
+    }
+
+    // 9.2: "lista corta que el usuario mismo mantiene" — categorías ya usadas, para sugerir en vez
+    // de escribir todo de nuevo cada vez.
+    static func existingCategories(in context: ModelContext) -> [String] {
+        let merchantCategories = ((try? context.fetch(FetchDescriptor<Merchant>())) ?? []).compactMap(\.category)
+        let expenseCategories = ((try? context.fetch(FetchDescriptor<Expense>())) ?? []).compactMap(\.category)
+        return Array(Set(merchantCategories).union(expenseCategories)).sorted()
+    }
 }
