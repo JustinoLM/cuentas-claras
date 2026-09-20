@@ -1,0 +1,122 @@
+//
+//  QRCaptureView.swift
+//  Cuentas Claras
+//
+//  Created by Justin Williams on 09/20/26.
+//
+
+import SwiftUI
+import SwiftData
+import PDFKit
+import UniformTypeIdentifiers
+
+// Vía 1 (spec 4.1), sus dos caminos: cámara en vivo (QRCodeScannerView) y facturas compartidas
+// como PDF (InvoicePDFBarcodeScanner) — ambos terminan en el mismo extractor de CUFE
+// (InvoiceQRCode) y el mismo pipeline de resolución (CUFEResolution) que la Vía 2.
+// DataScannerViewController.isSupported siempre es false en el Simulator — la cámara solo se
+// puede probar en un iPhone físico, pero el camino de PDF no depende de eso.
+struct QRCaptureView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    @State private var statusMessage: String?
+    @State private var isProcessing = false
+    @State private var isShowingFileImporter = false
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            if QRCodeScannerView.isSupported {
+                QRCodeScannerView { scannedValue in
+                    handle(scannedValue: scannedValue)
+                }
+                .ignoresSafeArea()
+            } else {
+                ContentUnavailableView(
+                    "Escaneo no disponible",
+                    systemImage: "camera.fill",
+                    description: Text("Este dispositivo no tiene cámara para escanear códigos QR. El Simulator tampoco la soporta — hay que probar la cámara en un iPhone físico. El botón de importar PDF sí funciona aquí.")
+                )
+            }
+
+            if let statusMessage {
+                Text(statusMessage)
+                    .padding()
+                    .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 12))
+                    .padding()
+            }
+        }
+        .navigationTitle("Escanear QR")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .primaryAction) {
+                Button {
+                    isShowingFileImporter = true
+                } label: {
+                    Label("Importar PDF", systemImage: "doc.badge.plus")
+                }
+            }
+        }
+        .fileImporter(isPresented: $isShowingFileImporter, allowedContentTypes: [.pdf]) { result in
+            switch result {
+            case .success(let url):
+                handle(pdfAt: url)
+            case .failure:
+                statusMessage = "No se pudo abrir el PDF."
+            }
+        }
+    }
+
+    private func handle(scannedValue: String) {
+        guard !isProcessing else { return }
+
+        guard let cufe = InvoiceQRCode.cufe(fromScannedValue: scannedValue) else {
+            statusMessage = "Ese código QR no es de una factura de la DGI."
+            return
+        }
+
+        lookupAndResolve(cufe: cufe)
+    }
+
+    private func handle(pdfAt url: URL) {
+        guard !isProcessing else { return }
+
+        guard url.startAccessingSecurityScopedResource() else {
+            statusMessage = "No se pudo abrir el PDF."
+            return
+        }
+        defer { url.stopAccessingSecurityScopedResource() }
+
+        guard let document = PDFDocument(url: url) else {
+            statusMessage = "No se pudo abrir el PDF."
+            return
+        }
+
+        let cufe: String?
+        do {
+            cufe = try InvoicePDFBarcodeScanner.cufe(from: document)
+        } catch {
+            statusMessage = "No se encontró un código QR en el PDF."
+            return
+        }
+
+        guard let cufe else {
+            statusMessage = "El código QR del PDF no es de una factura de la DGI."
+            return
+        }
+
+        lookupAndResolve(cufe: cufe)
+    }
+
+    private func lookupAndResolve(cufe: String) {
+        isProcessing = true
+        Task {
+            let outcome = await DGIInvoiceLookupService.lookup(cufe: cufe)
+            if let message = CUFEResolution.handle(outcome, cufe: cufe, in: modelContext) {
+                statusMessage = message
+                isProcessing = false
+            } else {
+                dismiss()
+            }
+        }
+    }
+}
