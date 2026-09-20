@@ -17,7 +17,9 @@ struct ExpenseListView: View {
 
     private var filteredExpenses: [Expense] {
         guard !searchText.isEmpty else { return expenses }
-        return expenses.filter { $0.issuerName.localizedCaseInsensitiveContains(searchText) }
+        return expenses.filter {
+            MerchantCategorization.displayName(for: $0, in: modelContext).localizedCaseInsensitiveContains(searchText)
+        }
     }
 
     var body: some View {
@@ -67,12 +69,13 @@ struct ExpenseListView: View {
 }
 
 private struct ExpenseRow: View {
+    @Environment(\.modelContext) private var modelContext
     let expense: Expense
 
     var body: some View {
         HStack {
             VStack(alignment: .leading) {
-                Text(expense.issuerName)
+                Text(MerchantCategorization.displayName(for: expense, in: modelContext))
                     .font(.headline)
                 Text(expense.scanDate, format: .dateTime.day().month().year())
                     .font(.caption)
