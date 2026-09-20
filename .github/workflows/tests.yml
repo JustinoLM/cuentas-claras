@@ -1,0 +1,12 @@
+name: Tests
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run tests
+        shell: bash
+        run: |
+          set -o pipefail
+          xcodebuild test -project "Cuentas Claras/Cuentas Claras.xcodeproj" -scheme "Cuentas Claras" -destination "platform=iOS Simulator,name=iPhone 17" 2>&1 | grep -E "error:|Test Suite|passed|failed|BUILD"
