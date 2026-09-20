@@ -13,7 +13,8 @@ import SwiftData
 // DGIInvoiceLookupService. Cubre los estados de la tabla 5.7.
 struct CUFEManualEntryView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
+
+    var onSaved: () -> Void = {}
 
     @State private var cufe = ""
     @State private var isLookingUp = false
@@ -57,7 +58,7 @@ struct CUFEManualEntryView: View {
         if let message = CUFEResolution.handle(outcome, cufe: cufe, in: modelContext) {
             statusMessage = message
         } else {
-            dismiss()
+            onSaved()
         }
     }
 }

@@ -462,8 +462,8 @@ Microsoft Graph API es gratis para uso de cuenta personal — no hay Azure de pa
 - **Swift Charts** (nativo) para las gráficas de la Capa 1: gasto por categoría, por mes, por comercio.
 - **VisionKit `DataScannerViewController`** para la UI de escaneo en vivo.
 - Pantallas principales:
-  1. Lista de gastos (con filtro/búsqueda)
-  2. Detalle de un gasto
+  1. Lista de gastos (con filtro/búsqueda; swipe-to-delete sobre una fila, sin diálogo de confirmación — el gesto de dos pasos del swipe ya protege contra un borrado accidental)
+  2. Detalle de un gasto (botón "Eliminar gasto", con diálogo de confirmación — un solo toque no tiene esa protección de dos pasos)
   3. Captura (selector entre: escanear QR / CUFE manual / gasto manual)
   4. Negocios sin categorizar
   5. Gráficas / análisis

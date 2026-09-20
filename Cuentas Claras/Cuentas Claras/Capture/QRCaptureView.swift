@@ -17,7 +17,8 @@ import UniformTypeIdentifiers
 // puede probar en un iPhone físico, pero el camino de PDF no depende de eso.
 struct QRCaptureView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(\.dismiss) private var dismiss
+
+    var onSaved: () -> Void = {}
 
     @State private var statusMessage: String?
     @State private var isProcessing = false
@@ -115,7 +116,7 @@ struct QRCaptureView: View {
                 statusMessage = message
                 isProcessing = false
             } else {
-                dismiss()
+                onSaved()
             }
         }
     }
