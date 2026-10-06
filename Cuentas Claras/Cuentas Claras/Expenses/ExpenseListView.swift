@@ -17,6 +17,7 @@ struct ExpenseListView: View {
     @State private var isShowingUncategorized = false
     @State private var isShowingPending = false
     @State private var isShowingAnalytics = false
+    @State private var isShowingSettings = false
     @State private var collapsedMonths: Set<Date> = []
     @State private var banner: ConfirmationBanner?
     @State private var filters = ListFilters()
@@ -148,6 +149,13 @@ struct ExpenseListView: View {
                         Label("Gráficas", systemImage: "chart.bar")
                     }
                 }
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        isShowingSettings = true
+                    } label: {
+                        Label("Ajustes", systemImage: "gearshape")
+                    }
+                }
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
                         isShowingFilters = true
@@ -177,6 +185,9 @@ struct ExpenseListView: View {
             }
             .sheet(isPresented: $isShowingAnalytics) {
                 AnalyticsView()
+            }
+            .sheet(isPresented: $isShowingSettings) {
+                SettingsView()
             }
             .sheet(isPresented: $isShowingFilters) {
                 ListFiltersSheet(
