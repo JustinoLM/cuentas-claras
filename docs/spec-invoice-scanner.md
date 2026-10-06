@@ -411,20 +411,21 @@ func exportExpenses() {
 
 ### 13.1 Prerequisito manual (no es código)
 
-Registrar la app en **Azure App Registration** (portal de Azure, cuenta Microsoft personal alcanza, gratis) para obtener un Client ID y configurar el redirect URI de MSAL. Esto lo hace el desarrollador una sola vez — no lo hace cada usuario.
+Registrar la app en **Microsoft Entra** (portal entra.microsoft.com). La cuenta Microsoft personal del desarrollador ya traía un tenant por defecto (Default Directory), sin suscripción de Azure ni tarjeta. Verificado el 2026-10-06; es comportamiento de Microsoft que puede cambiar. Tipo de cuenta soportada: solo cuentas personales de Microsoft (authority `consumers`). Nombre de la app: `Cuentas Claras`, fijo antes del primer uso porque determina el nombre de la carpeta en el OneDrive del usuario.
 
 ### 13.2 Auth
 
-- **MSAL para iOS**, scope `Files.ReadWrite`.
+- **MSAL para iOS**, scope `Files.ReadWrite.AppFolder` (reemplaza `Files.ReadWrite`).
 - Flujo **PKCE, sin client secret embebido** en el binario (los SDKs móviles de Microsoft/Google soportan esto nativamente — si algún tutorial pide meter un secret en el código Swift, es la señal de que es el flujo equivocado).
-- Token resultante se guarda en **Keychain**, con `kSecAttrAccessibleWhenUnlockedThisDeviceOnly` — nunca en `UserDefaults` (texto plano, legible en un backup), y sin sincronizar a otros dispositivos vía iCloud Keychain.
+- Token: lo administra la caché de MSAL en Keychain con `kSecAttrAccessibleAfterFirstUnlockThisDeviceOnly`, no configurable. No se sincroniza a otros dispositivos. Grupo de keychain propio (igual al bundle ID), sin keychain compartido.
+- **Riesgo conocido**: `Files.ReadWrite.AppFolder` figura como preview en la documentación de Microsoft desde hace años, limitado a cuentas personales, sin planes anunciados de extenderlo. Comportamiento no garantizado, igual que 5.1.
 
 ### 13.3 Sync de facturas individuales
 
 Un archivo por `Expense`, nombrado por su `id` (UUID) — **no por CUFE**, para que gastos manuales encajen igual.
 
 ```
-PUT /me/drive/root:/Facturas/{uuid}.csv:/content
+PUT /me/drive/special/approot:/Facturas/{uuid}.csv:/content
 ```
 
 Propagación de cambios vía el campo `layer3SyncState`:
@@ -433,33 +434,41 @@ Propagación de cambios vía el campo `layer3SyncState`:
 |---|---|
 | `.pending` (nuevo) | `PUT` crear archivo nuevo → pasa a `.synced` |
 | `.modifiedLocally` (editado después de ya sincronizado) | `PUT` sobreescribe el mismo archivo (mismo UUID) → pasa a `.synced` |
-| `.deletedLocally` (borrado local, borrado suave) | `DELETE` del archivo remoto; si responde OK, ahí sí se borra el registro local de verdad |
+| `.deletedLocally` (borrado local, borrado suave) | `DELETE` del archivo remoto; si responde OK, ahí sí se borra el registro local de verdad. Un `DELETE` con respuesta 404 se trata como éxito |
 
 **Trigger**: mismo patrón que la cola offline (sección 8) — al volver la app a primer plano con conexión. No hay timer de background.
 
-**Nota sobre Power Query**: si el usuario ya combinó estos archivos en una tabla de Excel, un `DELETE` remoto no desaparece de esa tabla hasta que el usuario haga un refresh manual en Excel — comportamiento normal de Power Query, no un bug de la app.
+**Cambio de cuenta**: al completar un login, si el `homeAccountId` guardado (UserDefaults; es un identificador, no un secreto) es nil o distinto del nuevo, se guarda y los `Expense` en `.synced` o `.modifiedLocally` pasan a `.pending` (los `.deletedLocally` no se tocan). Si es igual, no se toca ningún estado. Al desconectar manualmente se borra el `homeAccountId`. La reconexión por sesión expirada no lo borra.
+
+**Sesión expirada**: si la renovación silenciosa falla pidiendo interacción, se marca un flag local y el sync se salta mientras esté activo. Ajustes muestra "Reconexión necesaria" con botón de login. Los registros siguen en `.pending`. Un 401 de Graph se reintenta una vez tras renovar el token; dos fallos seguidos cuentan como sesión expirada.
+
+**Throttling**: los `PUT` van en secuencia, sin concurrencia. Ante un 429 el ciclo se detiene, lo pendiente queda en `.pending` y se reanuda en el siguiente primer plano. `Retry-After` no se usa como timer.
+
+**Nota sobre Power Query**: si el usuario ya combinó estos archivos en una tabla de Excel, un `DELETE` remoto no desaparece de esa tabla hasta que el usuario haga un refresh manual en Excel — comportamiento normal de Power Query, no un bug de la app. Los archivos viven bajo `Apps/Cuentas Claras` en el OneDrive del usuario. Si el usuario renombra o mueve esa carpeta, la app sigue funcionando (usa `special/approot`), pero su consulta de Power Query apunta a la ruta vieja y se rompe.
 
 ### 13.4 Backup manual reusando la misma conexión
 
 Botón "Respaldar ahora" en ajustes — **manual, disparado únicamente por el usuario, sin ningún trigger automático ni gate de tiempo** (decisión explícita: se descartó cualquier mecanismo de "cada cierto tiempo" porque iOS no ofrece un timer de background confiable, y no hace falta uno si la acción es manual). Reusa la misma función de regenerar CSV completo (sección 11.1) y lo sube a una carpeta separada:
 
 ```
-PUT /me/drive/root:/Backups/respaldo.csv:/content
+PUT /me/drive/special/approot:/Backups/respaldo.csv:/content
 ```
 
 Sobrescribe cada vez (no acumula versiones — OneDrive ya guarda historial de versiones de un archivo por su cuenta).
+
+Errores en "Respaldar ahora": mismas reglas que 13.3. Un 401 se reintenta una vez tras renovar el token. Si la renovación pide interacción, se marca el flag de "Reconexión necesaria" y se muestra el error con opción de reconectar; como el usuario está presente, reconectar abre el login directamente. Un 429 muestra error sin reintento automático. Un login iniciado desde aquí pasa por la regla de `homeAccountId` de 13.3.
 
 Esta función es exclusiva de quien ya activó la Capa 3 — no es universal, no aplica a quien no ha conectado OneDrive.
 
 ### 13.5 Sobre costos
 
-Microsoft Graph API es gratis para uso de cuenta personal — no hay Azure de pago involucrado ni para el desarrollador ni para el usuario. El único límite real es de **tasa** (rate limiting, HTTP 429, espera temporal) — irrelevante a la frecuencia de uso de esta app (acciones manuales del usuario, archivos de pocos KB).
+Microsoft Graph API es gratis para cuenta personal; no hay Azure de pago ni para el desarrollador ni para el usuario. Rate limiting (429) irrelevante en uso normal; tras un reset de estados por cambio de cuenta puede ocurrir y se maneja con la regla de 13.3.
 
 ---
 
 ## 14. Seguridad
 
-- **Keychain** para tokens OAuth (sección 13.2), no `UserDefaults`.
+- **Keychain** para tokens OAuth vía la caché de MSAL (ver 13.2), no `UserDefaults`.
 - **PKCE**, sin secretos embebidos en el binario.
 - **Data Protection class** en el store de SwiftData — mínimo el default de iOS (`.completeUntilFirstUserAuthentication`), dado que son datos financieros.
 - **Bloqueo de app opcional con Face ID/Touch ID** al abrir (`LocalAuthentication`) — proporcional al tipo de dato, sin requerir servidor.
@@ -482,7 +491,7 @@ Microsoft Graph API es gratis para uso de cuenta personal — no hay Azure de pa
   4. Negocios sin categorizar
   5. Gráficas / análisis
   6. Pendientes (cola offline, sección 8)
-  7. Ajustes (exportar Capa 2, conectar/desconectar Capa 3, respaldar ahora, bloqueo con Face ID)
+  7. Ajustes (exportar Capa 2, conectar/desconectar Capa 3, estado "Reconexión necesaria" de Capa 3, respaldar ahora, bloqueo con Face ID)
 - Fuera de alcance por ahora: Android/Material Design. Este documento es exclusivamente para la versión iOS.
 
 ---
@@ -531,7 +540,7 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 - Pantalla de ajustes básica
 
 ### Fase 3 — Capa 3
-- Azure App Registration (manual, por el desarrollador)
+- Registro en Microsoft Entra (manual, por el desarrollador)
 - Auth MSAL + Keychain (secciones 13.1, 13.2)
 - Sync de facturas individuales con propagación de cambios (13.3)
 - Backup manual a OneDrive (13.4)
