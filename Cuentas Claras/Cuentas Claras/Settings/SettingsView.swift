@@ -9,11 +9,13 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
-// Spec section 15, pantalla 7. Por ahora solo la exportación de la Capa 2; conexión de la Capa 3,
-// "respaldar ahora" y bloqueo con Face ID llegan con sus fases.
+// Spec section 15, pantalla 7. Exportación de la Capa 2 y conexión de la Capa 3; "respaldar ahora"
+// y bloqueo con Face ID llegan con sus fases.
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @State private var oneDrive = OneDriveAuth.shared
+    @State private var isSigningIn = false
     @Query(filter: #Predicate<Expense> { $0.layer2ExportedAt == nil }) private var pendingExport: [Expense]
     @State private var banner: ConfirmationBanner?
     @State private var isShowingReconnectNotice = false
@@ -29,6 +31,28 @@ struct SettingsView: View {
                     Text("Exportar a archivo")
                 } footer: {
                     Text("\(pendingLabel). Se guardan en un archivo CSV en la ubicación que elijas.")
+                }
+
+                Section {
+                    if !oneDrive.isConnected {
+                        Button("Conectar con OneDrive") { signIn() }
+                            .disabled(isSigningIn)
+                    } else {
+                        if oneDrive.needsReconnection {
+                            Label("Reconexión necesaria", systemImage: "exclamationmark.triangle.fill")
+                                .foregroundStyle(Color("PanamaRed"))
+                            Button("Iniciar sesión") { signIn() }
+                                .disabled(isSigningIn)
+                        } else {
+                            Label("Conectado", systemImage: "checkmark.circle.fill")
+                                .foregroundStyle(Color("PanamaBlue"))
+                        }
+                        Button("Desconectar", role: .destructive) { oneDrive.disconnect() }
+                    }
+                } header: {
+                    Text("OneDrive")
+                } footer: {
+                    Text("Opcional. Requiere una cuenta personal de Microsoft.")
                 }
             }
             .navigationTitle("Ajustes")
@@ -57,6 +81,22 @@ struct SettingsView: View {
 
     private var pendingLabel: String {
         pendingExport.count == 1 ? "1 factura sin exportar" : "\(pendingExport.count) facturas sin exportar"
+    }
+
+    private func signIn() {
+        isSigningIn = true
+        Task {
+            defer { isSigningIn = false }
+            do {
+                try await oneDrive.signIn(in: modelContext)
+                banner = ConfirmationBanner(kind: .success, message: "OneDrive conectado")
+            } catch OneDriveAuthError.cancelled {
+                // El usuario cerró el login; no es un error.
+            } catch {
+                print("OneDrive sign-in failed: \(error)")
+                banner = ConfirmationBanner(kind: .failure, message: "No se pudo conectar con OneDrive")
+            }
+        }
     }
 
     private func export() {

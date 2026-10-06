@@ -5,6 +5,7 @@
 //  Created by Justin Williams on 09/19/26.
 //
 
+import MSAL
 import SwiftUI
 import SwiftData
 
@@ -33,6 +34,10 @@ struct Cuentas_ClarasApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onOpenURL { url in
+                    // Respuesta del broker de Microsoft (app Authenticator), si el login pasa por ahí.
+                    MSALPublicClientApplication.handleMSALResponse(url, sourceApplication: nil)
+                }
         }
         .modelContainer(sharedModelContainer)
     }
