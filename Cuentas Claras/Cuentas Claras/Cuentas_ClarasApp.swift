@@ -26,6 +26,10 @@ struct Cuentas_ClarasApp: App {
         }
     }()
 
+    init() {
+        LocalBackupWriter.startObserving(context: sharedModelContainer.mainContext)
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
