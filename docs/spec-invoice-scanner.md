@@ -513,7 +513,7 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 
 ## 18. Roadmap por fases
 
-**Estado**: Fase 1 completa — tag `v0.1.0`. Detalle del pulido hecho sobre lo básico en el issue #31 (cerrado). Ideas anotadas para evaluar más adelante, sin diseñar todavía: pagos recurrentes (issue #32) e inversiones/ahorros (issue #42) — ninguna de las dos es parte de ninguna fase todavía. Siguiente: Fase 2.
+**Estado**: Fase 2 completa — tag `v0.2.0` (Fase 1: `v0.1.0`). Detalle del pulido hecho sobre lo básico de la Fase 1 en el issue #31 (cerrado). Ideas anotadas para evaluar más adelante, sin diseñar todavía: pagos recurrentes (issue #32) e inversiones/ahorros (issue #42) — ninguna de las dos es parte de ninguna fase todavía. Siguiente: Fase 3.
 
 ### Fase 1 — Núcleo (Capa 1) ✅
 - Modelos SwiftData (sección 3)
@@ -525,7 +525,7 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 - Pantallas de lista, detalle, captura, categorización
 - Gráficas con Swift Charts
 
-### Fase 2 — Capa 0 + Capa 2
+### Fase 2 — Capa 0 + Capa 2 ✅
 - Backup local automático silencioso (sección 10)
 - Exportación manual a archivo elegido, con append y versionado de esquema (secciones 11, 12)
 - Pantalla de ajustes básica
