@@ -19,7 +19,8 @@ enum OneDriveBackup {
 
     private static let backupURL = URL(string: "https://graph.microsoft.com/v1.0/me/drive/special/approot:/Backups/respaldo.csv:/content")!
 
-    static func run(in context: ModelContext, environment: OneDriveSyncEnvironment = .live) async -> Outcome {
+    @MainActor static func run(in context: ModelContext, environment: OneDriveSyncEnvironment? = nil) async -> Outcome {
+        let environment = environment ?? .live
         guard let expenses = try? ManualExporter.allExpenses(in: context) else { return .localError }
         let csv = ExpenseCSVSerializer.fullCSV(for: expenses, in: context)
 

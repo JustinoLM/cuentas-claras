@@ -8,6 +8,13 @@
 import Foundation
 import SwiftData
 
+// Guard de un solo ciclo a la vez, mismo patrón que OneDriveSyncGate. Es inyectable para que los
+// tests no compartan estado con el ciclo real que la app anfitriona dispara al abrirse.
+nonisolated final class PendingLookupGate {
+    static let shared = PendingLookupGate()
+    var isRunning = false
+}
+
 enum PendingLookupQueue {
     // Called when DGIInvoiceLookupService returns .networkError for a CUFE — see its own comment on
     // why only that case (not .parsingFailed) belongs in this queue.
@@ -24,14 +31,22 @@ enum PendingLookupQueue {
 
     // Meant to run on scenePhase becoming .active, and from the manual "Reintentar ahora" button
     // (spec section 8) — not BGTaskScheduler. Only .networkError keeps an entry queued; any other
-    // outcome is resolved one way or another and the entry is removed.
-    static func retryAll(in context: ModelContext, urlSession: URLSession = .shared) async throws {
-        let pending = try context.fetch(FetchDescriptor<PendingLookup>())
+    // outcome is resolved one way or another and the entry is removed. A network error ends the
+    // cycle: the remaining entries are left untouched for the next one rather than each paying its
+    // own timeout. scenePhase can turn .active several times in a row, and the manual button runs
+    // the same code, so a second concurrent call returns immediately.
+    static func retryAll(in context: ModelContext, urlSession: URLSession = .shared, gate: PendingLookupGate = .shared) async throws {
+        guard !gate.isRunning else { return }
+        gate.isRunning = true
+        defer { gate.isRunning = false }
+
+        let pending = try context.fetch(FetchDescriptor<PendingLookup>(sortBy: [SortDescriptor(\.firstAttemptDate)]))
 
         for lookup in pending {
             switch await DGIInvoiceLookupService.lookup(cufe: lookup.cufe, urlSession: urlSession) {
             case .networkError:
                 lookup.attemptCount += 1
+                return
 
             case .parsed(.success(let expense)):
                 // No pasa por la pantalla de revisión (4.4) — el reintento corre en segundo plano,

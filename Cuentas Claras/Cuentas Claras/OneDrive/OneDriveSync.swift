@@ -52,11 +52,15 @@ enum OneDriveSync {
 
     private static let folderURL = "https://graph.microsoft.com/v1.0/me/drive/special/approot:/Facturas/"
 
-    static func run(
+    @MainActor static func run(
         in context: ModelContext,
-        store: OneDriveAccountStore = .shared,
-        environment: OneDriveSyncEnvironment = .live
+        store: OneDriveAccountStore? = nil,
+        environment: OneDriveSyncEnvironment? = nil
     ) async -> Outcome {
+        // Los valores reales se resuelven aquí y no como argumentos por defecto: esos se evalúan
+        // sin aislamiento y .shared/.live son del main actor.
+        let store = store ?? .shared
+        let environment = environment ?? .live
         let gate = environment.gate
         guard !gate.isRunning, store.homeAccountId != nil, !store.needsReconnection else { return .skipped }
         guard let allExpenses = try? context.fetch(FetchDescriptor<Expense>()),
