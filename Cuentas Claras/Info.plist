@@ -11,6 +11,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Se usa Face ID para desbloquear la app y proteger tus gastos.</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>msauthv2</string>
