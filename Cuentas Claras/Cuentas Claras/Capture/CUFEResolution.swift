@@ -21,20 +21,20 @@ enum CUFEResolution {
     static func handle(_ outcome: CUFELookupOutcome, cufe: String, in context: ModelContext) -> CUFEResolutionResult {
         switch outcome {
         case .invalidFormat:
-            return .message("El CUFE no tiene un formato válido.")
+            return .message("El CUFE no es válido. Revisa que lo copiaste completo.")
 
         case .networkError:
             try? PendingLookupQueue.enqueue(cufe: cufe, in: context)
-            return .message("No hay conexión. Se guardó para reintentar cuando vuelva la señal.")
+            return .message("Sin conexión. Guardamos la consulta y la reintentaremos cuando vuelvas a tener internet.")
 
         case .parsingFailed:
-            return .message("No se pudo leer la respuesta de la DGI.")
+            return .message("No se pudo leer la respuesta de la DGI. Inténtalo de nuevo más tarde.")
 
         case .parsed(.notFound):
-            return .message("No se encontró ninguna factura con ese CUFE.")
+            return .message("La DGI no tiene ninguna factura con ese CUFE. Revisa que sea correcto.")
 
         case .parsed(.unsupported):
-            return .message("Ese documento no es una factura soportada (por ejemplo, una nota de crédito).")
+            return .message("Esta app todavía no admite este tipo de documento (por ejemplo, una nota de crédito).")
 
         case .parsed(.success(let expense)):
             if let existing = try? ExpenseDeduplicator.existingExpense(withCufe: cufe, in: context) {

@@ -178,7 +178,7 @@ struct ExpenseDetailView: View {
                 let success = MerchantCategorization.setCategory(newCategory, for: expense, in: modelContext)
                 banner = success
                     ? ConfirmationBanner(kind: .success, message: "Categoría actualizada")
-                    : ConfirmationBanner(kind: .failure, message: "No se pudo guardar la categoría")
+                    : ConfirmationBanner(kind: .failure, message: "No se pudo guardar la categoría. Inténtalo de nuevo.")
             }
         }
         .sheet(isPresented: $isShowingAliasEditor) {
@@ -191,7 +191,7 @@ struct ExpenseDetailView: View {
                 let success = MerchantCategorization.setAlias(newAlias, for: expense, in: modelContext)
                 banner = success
                     ? ConfirmationBanner(kind: .success, message: "Alias actualizado")
-                    : ConfirmationBanner(kind: .failure, message: "No se pudo guardar el alias")
+                    : ConfirmationBanner(kind: .failure, message: "No se pudo guardar el alias. Inténtalo de nuevo.")
             }
         }
         .sheet(isPresented: $isShowingNameEditor) {
