@@ -1,7 +1,20 @@
 name: Tests
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['docs/**', '**.md']
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths-ignore: ['docs/**', '**.md']
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
 jobs:
   test:
+    if: github.event.pull_request.draft != true
     runs-on: xcode-27
     steps:
       - uses: actions/checkout@v4
