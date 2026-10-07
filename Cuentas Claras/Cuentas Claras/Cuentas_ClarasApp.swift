@@ -28,6 +28,8 @@ struct Cuentas_ClarasApp: App {
         }
     }()
 
+    @Environment(\.scenePhase) private var scenePhase
+
     init() {
         LocalBackupWriter.startObserving(context: sharedModelContainer.mainContext)
     }
@@ -35,6 +37,9 @@ struct Cuentas_ClarasApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onChange(of: scenePhase, initial: true) { _, phase in
+                    AppLock.shared.scenePhaseChanged(phase)
+                }
                 .onOpenURL { url in
                     // Respuesta del broker de Microsoft (app Authenticator), si el login pasa por ahí.
                     MSALPublicClientApplication.handleMSALResponse(url, sourceApplication: nil)

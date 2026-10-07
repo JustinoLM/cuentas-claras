@@ -9,12 +9,17 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
-// Spec section 15, pantalla 7. Exportación de la Capa 2, conexión y respaldo de la Capa 3; el
-// bloqueo con Face ID llega con su fase.
+// Spec section 15, pantalla 7. Exportación de la Capa 2, conexión y respaldo de la Capa 3, y bloqueo
+// con Face ID.
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.scenePhase) private var scenePhase
     @State private var oneDrive = OneDriveAuth.shared
+    @State private var lock = AppLock.shared
+    // Se vuelve a leer al volver a primer plano: el usuario puede configurar el código del
+    // dispositivo desde Ajustes de iOS y regresar con esta pantalla abierta.
+    @State private var canUseLock = AppLock.canUseDeviceAuthentication
     @State private var isSigningIn = false
     @State private var isBackingUp = false
     @State private var isShowingBackupReconnectPrompt = false
@@ -60,6 +65,21 @@ struct SettingsView: View {
                         ? "Respaldar ahora sube un archivo CSV con todas tus facturas y reemplaza el respaldo anterior."
                         : "Opcional. Requiere una cuenta personal de Microsoft.")
                 }
+
+                Section {
+                    Toggle("Bloquear con Face ID", isOn: Binding(
+                        get: { lock.isEnabled },
+                        set: { lock.setEnabled($0) }
+                    ))
+                    .disabled(!canUseLock && !lock.isEnabled)
+                } header: {
+                    Text("Seguridad")
+                } footer: {
+                    Text(lockFooter)
+                }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active { canUseLock = AppLock.canUseDeviceAuthentication }
             }
             .navigationTitle("Ajustes")
             .toolbar {
@@ -89,6 +109,16 @@ struct SettingsView: View {
             }
             .confirmationBanner($banner)
         }
+    }
+
+    private var lockFooter: String {
+        if canUseLock {
+            return "Pide Face ID, Touch ID o el código del dispositivo al abrir la app y cada vez que vuelves a ella."
+        }
+        if lock.isEnabled {
+            return "El bloqueo está inactivo porque este dispositivo no tiene código configurado. Configúralo en Ajustes de iOS para que vuelva a funcionar."
+        }
+        return "Para activar el bloqueo, primero configura un código en este dispositivo (Ajustes de iOS > Face ID y código)."
     }
 
     private var pendingLabel: String {
