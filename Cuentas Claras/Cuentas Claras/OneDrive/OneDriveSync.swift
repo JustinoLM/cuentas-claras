@@ -46,7 +46,7 @@ enum OneDriveSync {
         case stopped(StopReason, uploaded: Int, deleted: Int)
     }
 
-    private struct Stop: Error {
+    struct Stop: Error {
         let reason: StopReason
     }
 
@@ -108,8 +108,8 @@ enum OneDriveSync {
     }
 
     // Un 401 se reintenta una vez con un token renovado a la fuerza; el segundo cuenta como sesión
-    // expirada (13.3).
-    private static func execute(
+    // expirada (13.3). También lo usa el respaldo manual (13.4), que tiene las mismas reglas.
+    static func execute(
         _ method: String,
         url: URL,
         body: Data?,
