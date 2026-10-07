@@ -504,7 +504,7 @@ Microsoft Graph API es gratis para cuenta personal; no hay Azure de pago ni para
 - **Swift Charts** (nativo) para las gráficas de la Capa 1: quincenas (con selector de año/mes), gasto por categoría, por mes, por año, y por comercio (top 10 donde más gastas, top 10 donde menos gastas, y frecuencia de visitas).
 - **VisionKit `DataScannerViewController`** para la UI de escaneo en vivo.
 - Pantallas principales:
-  1. Mis Facturas (lista raíz, mezcla facturas DGI y gastos manuales; con buscador por nombre nativo de iOS y un botón de filtro aparte, en la esquina opuesta de la barra de navegación — RUC/sin RUC, categoría, método de pago; los filtros activos aparecen como chips removibles debajo del título; agrupada por mes en secciones colapsables — sin esto, años de datos serían una lista inmanejable; swipe-to-delete sobre una fila, sin diálogo de confirmación porque el gesto de dos pasos del swipe ya protege contra un borrado accidental). Se ordena y agrupa por `Expense.paymentDate` (`authorizationDate` ?? `issueDate` ?? `scanDate`) — nunca por `scanDate` a solas, que es cuándo se guardó en la app y puede no coincidir con cuándo se hizo la compra real.
+  1. Mis Facturas (lista raíz, mezcla facturas DGI y gastos manuales; con buscador por nombre nativo de iOS y un botón de filtro aparte, en la esquina opuesta de la barra de navegación — RUC/sin RUC, rango de fechas desde/hasta (inclusivo, por día, sobre `paymentDate`; cada extremo es opcional), categoría, método de pago; los filtros activos aparecen como chips removibles debajo del título; agrupada por mes en secciones colapsables — sin esto, años de datos serían una lista inmanejable; swipe-to-delete sobre una fila, sin diálogo de confirmación porque el gesto de dos pasos del swipe ya protege contra un borrado accidental). Se ordena y agrupa por `Expense.paymentDate` (`authorizationDate` ?? `issueDate` ?? `scanDate`) — nunca por `scanDate` a solas, que es cuándo se guardó en la app y puede no coincidir con cuándo se hizo la compra real.
   2. Detalle de una factura/gasto — insignia "RUC" (azul) / "SIN RUC" (rojo) junto al encabezado de la sección Negocio. Campos editables (alias/categoría siempre; nombre, fecha de pago, monto y método de pago solo si `cufe == nil`, ver 4.3) se marcan con un ícono de lápiz y, al guardar, un banner de confirmación (o de error si la operación falla) — sin esto, cerrar el editor sin ningún otro rastro visible dejaba al usuario sin saber si el cambio se guardó. Botón "Eliminar factura" (si tiene CUFE) o "Eliminar gasto" (manual), con diálogo de confirmación, ya que un solo toque no tiene la protección de dos pasos del swipe. La fecha se muestra bajo una sola etiqueta, "Fecha de pago", sin distinguir en el texto si es `authorizationDate` (DGI) o `issueDate` (manual)
   3. Captura (selector entre: escanear QR / CUFE manual / gasto manual)
   4. Negocios sin categorizar
@@ -541,7 +541,7 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 
 ## 18. Roadmap por fases
 
-**Estado**: Fase 4 completa — tag `v0.4.0` (Fase 3: `v0.3.0`, Fase 2: `v0.2.0`, Fase 1: `v0.1.0`). Detalle del pulido hecho sobre lo básico de la Fase 1 en el issue #31 (cerrado). Ideas anotadas para evaluar más adelante, sin diseñar todavía: pagos recurrentes (issue #32) e inversiones/ahorros (issue #42) — ninguna de las dos es parte de ninguna fase todavía. Siguiente: Fase 5 (por definir).
+**Estado**: Fase 5 completa — tag `v1.0.0` (Fase 4: `v0.4.0`, Fase 3: `v0.3.0`, Fase 2: `v0.2.0`, Fase 1: `v0.1.0`). Detalle del pulido hecho sobre lo básico de la Fase 1 en el issue #31 (cerrado). La publicación en App Store sigue pendiente (`docs/app-store-publication.md`). Siguiente: Fase 6 (pagos recurrentes #32, inversiones y ahorros #42), cada una con decisión de arquitectura previa.
 
 ### Fase 1 — Núcleo (Capa 1) ✅
 - Modelos SwiftData (sección 3)
@@ -569,10 +569,10 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 - Privacy Manifest
 - Verificación de ATS contra el dominio DGI real (sección 14)
 
-### Fase 5: Cierre de código de v1.0.0
-- Filtros en la lista principal (#38)
-- Refinar redacción de mensajes de confirmación y error (#36)
-- Test: casos de riesgo en deduplicación y analítica (#40, ver CLAUDE.md sobre alcance de tests)
+### Fase 5: Cierre de código de v1.0.0 ✅
+- Filtros en la lista principal (#38) ✅
+- Refinar redacción de mensajes de confirmación y error (#36) ✅
+- Test: casos de riesgo en deduplicación y analítica (#40, ver CLAUDE.md sobre alcance de tests) ✅
 - Notas de crédito (sección 7), cuando se consiga un caso real. Mientras tanto caen en .unsupported (límite conocido de v1); no bloquea v1.0.0
 
 ### Publicación en App Store (sin fecha, requiere Apple Developer Program)

@@ -2,7 +2,7 @@
 
 iOS app to scan Panama DGI electronic invoices (SFEP) and track personal expenses, local-first.
 
-**Status**: Fase 4 (polish and store preparation) complete — tag `v0.4.0`. See `docs/spec-invoice-scanner.md` section 18 for the roadmap and current phase.
+**Status**: Fase 5 (code complete for v1.0.0) complete — tag `v1.0.0`. App Store publication is pending (`docs/app-store-publication.md`). See `docs/spec-invoice-scanner.md` section 18 for the roadmap and current phase.
 
 ## What it does
 
