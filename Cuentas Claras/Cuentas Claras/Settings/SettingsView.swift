@@ -9,13 +9,15 @@ import SwiftUI
 import SwiftData
 import UniformTypeIdentifiers
 
-// Spec section 15, pantalla 7. Exportación de la Capa 2 y conexión de la Capa 3; "respaldar ahora"
-// y bloqueo con Face ID llegan con sus fases.
+// Spec section 15, pantalla 7. Exportación de la Capa 2, conexión y respaldo de la Capa 3; el
+// bloqueo con Face ID llega con su fase.
 struct SettingsView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @State private var oneDrive = OneDriveAuth.shared
     @State private var isSigningIn = false
+    @State private var isBackingUp = false
+    @State private var isShowingBackupReconnectPrompt = false
     @Query(filter: #Predicate<Expense> { $0.layer2ExportedAt == nil }) private var pendingExport: [Expense]
     @State private var banner: ConfirmationBanner?
     @State private var isShowingReconnectNotice = false
@@ -47,12 +49,16 @@ struct SettingsView: View {
                             Label("Conectado", systemImage: "checkmark.circle.fill")
                                 .foregroundStyle(Color("PanamaBlue"))
                         }
+                        Button("Respaldar ahora") { backUp() }
+                            .disabled(isBackingUp)
                         Button("Desconectar", role: .destructive) { oneDrive.disconnect() }
                     }
                 } header: {
                     Text("OneDrive")
                 } footer: {
-                    Text("Opcional. Requiere una cuenta personal de Microsoft.")
+                    Text(oneDrive.isConnected
+                        ? "Respaldar ahora sube un archivo CSV con todas tus facturas y reemplaza el respaldo anterior."
+                        : "Opcional. Requiere una cuenta personal de Microsoft.")
                 }
             }
             .navigationTitle("Ajustes")
@@ -60,6 +66,12 @@ struct SettingsView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Listo") { dismiss() }
                 }
+            }
+            .alert("Reconexión necesaria", isPresented: $isShowingBackupReconnectPrompt) {
+                Button("Iniciar sesión") { signIn() }
+                Button("Cancelar", role: .cancel) {}
+            } message: {
+                Text("Tu sesión de OneDrive expiró. Inicia sesión de nuevo para respaldar.")
             }
             .alert("No encontramos tu archivo anterior", isPresented: $isShowingReconnectNotice) {
                 Button("Elegir ubicación") { presentExporter() }
@@ -81,6 +93,25 @@ struct SettingsView: View {
 
     private var pendingLabel: String {
         pendingExport.count == 1 ? "1 factura sin exportar" : "\(pendingExport.count) facturas sin exportar"
+    }
+
+    private func backUp() {
+        isBackingUp = true
+        Task {
+            defer { isBackingUp = false }
+            switch await OneDriveBackup.run(in: modelContext) {
+            case .succeeded:
+                banner = ConfirmationBanner(kind: .success, message: "Respaldo subido a OneDrive")
+            case .failed(.sessionExpired):
+                isShowingBackupReconnectPrompt = true
+            case .failed(.throttled):
+                banner = ConfirmationBanner(kind: .failure, message: "OneDrive pide esperar. Inténtalo más tarde")
+            case .failed(.networkError):
+                banner = ConfirmationBanner(kind: .failure, message: "No se pudo conectar con OneDrive")
+            case .failed(.httpError), .localError:
+                banner = ConfirmationBanner(kind: .failure, message: "No se pudo respaldar")
+            }
+        }
     }
 
     private func signIn() {
