@@ -566,8 +566,11 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 ### Fase 4 — Pulido y preparación para tienda
 - Bloqueo con Face ID/Touch ID
 - Privacy Manifest, Privacy Policy, Nutrition Label
-- Revisión de notas de crédito con un caso real (sección 7)
 - Verificación de ATS contra el dominio DGI real (sección 14)
+
+### Fase 5 — Pendientes fuera del spec original
+Alcance por definir; se arma a partir de los Issues abiertos que no corresponden a ninguna fase anterior. Incluye la revisión final de Privacy Policy y Nutrition Label antes del primer envío a App Review.
+- Revisión de notas de crédito con un caso real (sección 7), cuando se consiga uno. Mientras tanto, caen en `.unsupported` (límite conocido de v1).
 
 ### Fuera de alcance (no en este spec)
 - Android / Google Play / Material Design
