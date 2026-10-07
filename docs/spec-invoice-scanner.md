@@ -313,8 +313,9 @@ Comportamiento v1: cualquier documento cuyo tipo no sea "FACTURA" cae en `.unsup
 
 Cuando una consulta a la DGI falla por error de red (no por CUFE inválido/inexistente), el CUFE se guarda en `PendingLookup` en vez de perderse.
 
-**Reintento**: no usar `BGTaskScheduler` (poco confiable, oportunista según decisión de Apple/batería). En su lugar:
-- Revisar conectividad **cada vez que la app vuelve a primer plano** (`scenePhase == .active` o equivalente) — si hay red, reintentar automáticamente todos los `PendingLookup`.
+**Reintento**: no usar `BGTaskScheduler` (poco confiable, oportunista según decisión de Apple/batería). Tampoco `NWPathMonitor`: no se verifica conectividad por adelantado, se intenta y se deja que falle. En su lugar:
+- Cada vez que la app vuelve a primer plano (`scenePhase == .active` o equivalente), reintentar todos los `PendingLookup`. Un error de red deja el registro como está (no se borra ni se marca como fallido) y corta el ciclo. Un intento sin red cuesta un timeout y nada más, así que no se justifica una capa de detección de conectividad.
+- Debe haber una protección para que no corran dos ciclos a la vez, porque `scenePhase` puede pasar a `.active` varias veces seguidas. Es el mismo patrón que el sync de Capa 3 (sección 13.3).
 - Botón manual "Reintentar ahora" en una pantalla de "Pendientes", como respaldo.
 
 Al resolver exitosamente, se crea el `Expense` correspondiente (pasando por la deduplicación de la sección 6 y el registro de `Merchant` de la sección 9) y se borra el `PendingLookup`. A diferencia de las vías 1 y 2 en su flujo interactivo, esto **no** pasa por la pantalla de revisión de 4.4 — el reintento corre en segundo plano, sin garantía de que el usuario esté mirando la pantalla en ese momento. El `Merchant` sí se crea igual, para poder categorizarlo y ponerle alias después desde su detalle o desde "Negocios sin categorizar".
