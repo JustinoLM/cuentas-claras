@@ -72,6 +72,27 @@ struct OneDriveSyncTests {
         #expect(recorder.requests.contains { $0.url!.absoluteString.contains(pending.id.uuidString) })
     }
 
+    @Test func schemaVersionChangeMovesSyncedToModifiedLocallyOnceAndLeavesPending() throws {
+        let context = try makeInMemoryContext()
+        let store = try makeStore(connected: false, in: context)
+        let synced = makeExpense(.synced, in: context)
+        let pending = makeExpense(.pending, in: context)
+        let modified = makeExpense(.modifiedLocally, in: context)
+        let all = [synced, pending, modified]
+
+        try OneDriveSync.applySchemaTransition(to: all, store: store, in: context)
+
+        #expect(synced.layer3SyncState == .modifiedLocally)
+        #expect(pending.layer3SyncState == .pending)
+        #expect(modified.layer3SyncState == .modifiedLocally)
+        #expect(store.lastSyncedSchemaVersion == ExpenseCSVSerializer.schemaVersion)
+
+        // Misma versión: ya no se vuelve a tocar nada.
+        synced.layer3SyncState = .synced
+        try OneDriveSync.applySchemaTransition(to: all, store: store, in: context)
+        #expect(synced.layer3SyncState == .synced)
+    }
+
     @Test func deleteReturningNotFoundCountsAsSuccess() async throws {
         let context = try makeInMemoryContext()
         let store = try makeStore(connected: true, in: context)

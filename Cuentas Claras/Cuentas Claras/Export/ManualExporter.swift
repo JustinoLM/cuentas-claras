@@ -49,7 +49,7 @@ enum ManualExporter {
         let handle = try FileHandle(forWritingTo: url)
         defer { try? handle.close() }
 
-        var text = try handle.seekToEnd() == 0 ? ExpenseCSVSerializer.headerLine + "\r\n" : ""
+        var text = try handle.seekToEnd() == 0 ? ExpenseCSVSerializer.bom + ExpenseCSVSerializer.headerLine + "\r\n" : ""
         text += ExpenseCSVSerializer.rows(for: pending, in: context).map { $0 + "\r\n" }.joined()
         try handle.write(contentsOf: Data(text.utf8))
 

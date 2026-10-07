@@ -69,6 +69,13 @@ enum OneDriveSync {
         gate.isRunning = true
         defer { gate.isRunning = false }
 
+        // Antes del bucle: los .synced que pasan a .modifiedLocally se suben en este mismo ciclo.
+        do {
+            try applySchemaTransition(to: allExpenses, store: store, in: context)
+        } catch {
+            return .skipped
+        }
+
         var uploaded = 0
         var deleted = 0
         var stopReason: StopReason?
@@ -105,6 +112,18 @@ enum OneDriveSync {
             return .stopped(stopReason, uploaded: uploaded, deleted: deleted)
         }
         return .finished(uploaded: uploaded, deleted: deleted)
+    }
+
+    // Spec 11.1: si cambió el formato del CSV, los archivos ya subidos tienen el formato viejo. Los
+    // .pending no se tocan (se suben nuevos) ni los PendingRemoteDeletion. La versión se guarda solo
+    // después de persistir los estados: si el save falla, la transición se reintenta en el próximo ciclo.
+    static func applySchemaTransition(to expenses: [Expense], store: OneDriveAccountStore, in context: ModelContext) throws {
+        guard store.lastSyncedSchemaVersion != ExpenseCSVSerializer.schemaVersion else { return }
+        for expense in expenses where expense.layer3SyncState == .synced {
+            expense.layer3SyncState = .modifiedLocally
+        }
+        try context.save()
+        store.lastSyncedSchemaVersion = ExpenseCSVSerializer.schemaVersion
     }
 
     private static func fileURL(for id: UUID, suffix: String) -> URL {
