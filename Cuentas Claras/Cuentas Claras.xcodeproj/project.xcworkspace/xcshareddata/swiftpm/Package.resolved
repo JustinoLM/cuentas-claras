@@ -1,5 +1,5 @@
 {
-  "originHash" : "836346aa12cff7ab4f2c2305feb08495c2f6902627b24c2641c6c4b806c1ad60",
+  "originHash" : "c050cb28419b7111afe7fc86721e235f923e974378430bdc555878fd9996984a",
   "pins" : [
     {
       "identity" : "microsoft-authentication-library-for-objc",
