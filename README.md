@@ -28,6 +28,11 @@ Full rationale and the complete technical spec: [`docs/spec-invoice-scanner.md`]
 2. Select your own Apple ID as the signing team (Signing & Capabilities) to run on a physical device.
 3. Build and run.
 
+## Notes
+
+- **MSAL is pinned to exactly 2.16.0** because the 2.16.1 release was published without its binary. Go back to a normal version rule (Up to Next Major) once a release ships with its binary.
+- **Credit notes (spec section 7)** have no confirmed selectors, so they fall into `.unsupported` in v1 until a real case is available.
+
 ## Project structure
 
 ```
