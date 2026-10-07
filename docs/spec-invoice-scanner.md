@@ -440,6 +440,8 @@ Un archivo por `Expense`, nombrado por su `id` (UUID) — **no por CUFE**, para 
 PUT /me/drive/special/approot:/Facturas/{uuid}.csv:/content
 ```
 
+El `PUT` por ruta crea la carpeta intermedia si no existe (`Facturas/` en 13.3, `Backups/` en 13.4); no hace falta crearla antes. Verificado en dispositivo el 2026-10-06; comportamiento no documentado, puede cambiar, igual que 5.1.
+
 Propagación de cambios vía el campo `layer3SyncState`, más la cola `PendingRemoteDeletion` (sección 3.5) para los borrados:
 
 | Origen | Acción en el próximo ciclo de sync |
@@ -467,6 +469,8 @@ Botón "Respaldar ahora" en ajustes — **manual, disparado únicamente por el u
 ```
 PUT /me/drive/special/approot:/Backups/respaldo.csv:/content
 ```
+
+La carpeta `Backups/` se crea sola con el primer `PUT` (ver la nota en 13.3).
 
 Sobrescribe cada vez (no acumula versiones — OneDrive ya guarda historial de versiones de un archivo por su cuenta).
 
@@ -536,7 +540,7 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 
 ## 18. Roadmap por fases
 
-**Estado**: Fase 2 completa — tag `v0.2.0` (Fase 1: `v0.1.0`). Detalle del pulido hecho sobre lo básico de la Fase 1 en el issue #31 (cerrado). Ideas anotadas para evaluar más adelante, sin diseñar todavía: pagos recurrentes (issue #32) e inversiones/ahorros (issue #42) — ninguna de las dos es parte de ninguna fase todavía. Siguiente: Fase 3.
+**Estado**: Fase 3 completa — tag `v0.3.0` (Fase 2: `v0.2.0`, Fase 1: `v0.1.0`). Detalle del pulido hecho sobre lo básico de la Fase 1 en el issue #31 (cerrado). Ideas anotadas para evaluar más adelante, sin diseñar todavía: pagos recurrentes (issue #32) e inversiones/ahorros (issue #42) — ninguna de las dos es parte de ninguna fase todavía. Siguiente: Fase 4.
 
 ### Fase 1 — Núcleo (Capa 1) ✅
 - Modelos SwiftData (sección 3)
@@ -553,7 +557,7 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 - Exportación manual a archivo elegido, con append y versionado de esquema (secciones 11, 12)
 - Pantalla de ajustes básica
 
-### Fase 3 — Capa 3
+### Fase 3 — Capa 3 ✅
 - Registro en Microsoft Entra (manual, por el desarrollador)
 - Auth MSAL + Keychain (secciones 13.1, 13.2)
 - Sync de facturas individuales con propagación de cambios (13.3)
