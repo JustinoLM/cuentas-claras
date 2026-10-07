@@ -491,7 +491,7 @@ Microsoft Graph API es gratis para cuenta personal; no hay Azure de pago ni para
 - **PKCE**, sin secretos embebidos en el binario.
 - **Data Protection class** en el store de SwiftData — mínimo el default de iOS (`.completeUntilFirstUserAuthentication`), dado que son datos financieros.
 - **Bloqueo de app opcional con Face ID/Touch ID** al abrir (`LocalAuthentication`) — proporcional al tipo de dato, sin requerir servidor.
-- **ATS (App Transport Security)** de iOS ya bloquea por defecto cualquier conexión no-HTTPS — no agregar excepciones (`NSAllowsArbitraryLoads`) salvo que se confirme, probando en la práctica, que el dominio `dgi-fep.mef.gob.pa` las necesita (algunos `.gob.pa` corren TLS más viejo que sitios comerciales — verificar con datos, no asumir).
+- **ATS (App Transport Security)** de iOS ya bloquea por defecto cualquier conexión no-HTTPS — no agregar excepciones (`NSAllowsArbitraryLoads`). Verificado el 2026-10-06 contra `dgi-fep.mef.gob.pa`, sin excepciones necesarias.
 - **Certificate pinning: descartado para v1**, decisión consciente. El costo de mantenimiento (romper la app entera para todos si el certificado rota y no se actualiza el pin a tiempo) no se justifica frente al nivel de amenaza real de una app de gastos personales sin usuarios masivos. Revisitar si el perfil de riesgo cambia.
 - Validación de CUFE (sección 5.2) siempre ocurre **antes** de cualquier request de red.
 
@@ -567,7 +567,7 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 ### Fase 4 — Pulido y preparación para tienda
 - Bloqueo con Face ID/Touch ID
 - Privacy Manifest, Privacy Policy, Nutrition Label
-- Verificación de ATS contra el dominio DGI real (sección 14)
+- Verificación de ATS contra el dominio DGI real (sección 14) ✅
 
 ### Fase 5 — Pendientes fuera del spec original
 Alcance por definir; se arma a partir de los Issues abiertos que no corresponden a ninguna fase anterior. Incluye la revisión final de Privacy Policy y Nutrition Label antes del primer envío a App Review.
