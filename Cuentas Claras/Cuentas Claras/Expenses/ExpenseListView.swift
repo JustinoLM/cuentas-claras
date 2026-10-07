@@ -49,6 +49,10 @@ struct ExpenseListView: View {
             result = result.filter { $0.issuerRuc == nil }
         }
 
+        if filters.dateFrom != nil || filters.dateTo != nil {
+            result = result.filter { filters.includes(date: $0.paymentDate) }
+        }
+
         if !filters.categories.isEmpty {
             result = result.filter { expense in
                 let category = (try? MerchantCategorization.category(for: expense, in: modelContext)) ?? nil
@@ -233,6 +237,13 @@ private struct ActiveFiltersRow: View {
         var result: [FilterChip] = []
         if filters.ruc != .all {
             result.append(FilterChip(label: filters.ruc.rawValue) { filters.ruc = .all })
+        }
+        let dateStyle = Date.FormatStyle().day().month(.abbreviated).year()
+        if let from = filters.dateFrom {
+            result.append(FilterChip(label: "Desde \(from.formatted(dateStyle))") { filters.dateFrom = nil })
+        }
+        if let to = filters.dateTo {
+            result.append(FilterChip(label: "Hasta \(to.formatted(dateStyle))") { filters.dateTo = nil })
         }
         for category in filters.categories.sorted() {
             result.append(FilterChip(label: category) { filters.categories.remove(category) })
