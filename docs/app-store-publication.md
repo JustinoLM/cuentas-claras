@@ -31,6 +31,7 @@ Verify each against developer.apple.com and App Store Connect before acting.
 ## 5. Privacy
 - [ ] Final review of docs/privacy-policy-draft.md: fill [date] (use the date of submission) and [contact email].
 - [ ] Review the Nutrition Label against the app as it is at submission time.
+- [ ] Check that the Privacy Policy and the Nutrition Label cover recurring payments and savings/investments (they travel to OneDrive if the user connects Layer 3).
 - [ ] Questionnaires: age rating, encryption export compliance (standard HTTPS usually exempt; verify).
 
 ## 6. Notes for the reviewer
