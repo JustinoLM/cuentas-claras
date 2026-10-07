@@ -564,15 +564,24 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 - Sync de facturas individuales con propagación de cambios (13.3)
 - Backup manual a OneDrive (13.4)
 
-### Fase 4 — Pulido y preparación para tienda ✅
-- Bloqueo con Face ID/Touch ID ✅
-- Privacy Manifest ✅
-- Privacy Policy y Nutrition Label: borradores en `docs/privacy-policy-draft.md`; revisión final en la Fase 5
-- Verificación de ATS contra el dominio DGI real (sección 14) ✅
+### Fase 4 — Pulido ✅
+- Bloqueo con Face ID/Touch ID
+- Privacy Manifest
+- Verificación de ATS contra el dominio DGI real (sección 14)
 
-### Fase 5 — Pendientes fuera del spec original
-Alcance por definir; se arma a partir de los Issues abiertos que no corresponden a ninguna fase anterior. Incluye la revisión final de Privacy Policy y Nutrition Label antes del primer envío a App Review.
-- Revisión de notas de crédito con un caso real (sección 7), cuando se consiga uno. Mientras tanto, caen en `.unsupported` (límite conocido de v1).
+### Fase 5: Cierre de código de v1.0.0
+- Filtros en la lista principal (#38)
+- Refinar redacción de mensajes de confirmación y error (#36)
+- Test: casos de riesgo en deduplicación y analítica (#40, ver CLAUDE.md sobre alcance de tests)
+- Notas de crédito (sección 7), cuando se consiga un caso real. Mientras tanto caen en .unsupported (límite conocido de v1); no bloquea v1.0.0
+
+### Publicación en App Store (sin fecha, requiere Apple Developer Program)
+Fuera del alcance de las fases de código. Detalle en `docs/app-store-publication.md`.
+
+### Fase 6: Funcionalidades extras (post v1.0.0)
+Cada una requiere decisión de arquitectura antes de convertirse en tarea. Tocan el modelo (sección 3), el esquema CSV congelado (sección 11, exige versionado) y la Privacy Policy.
+- Pagos recurrentes (#32)
+- Inversiones y ahorros (#42)
 
 ### Fuera de alcance (no en este spec)
 - Android / Google Play / Material Design
