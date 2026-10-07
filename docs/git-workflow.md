@@ -87,21 +87,13 @@ Flujo: **Issue → rama → PR que lo cierra → merge → Issue se cierra solo.
 
 ## 5. CI — GitHub Actions
 
-Archivo `.github/workflows/tests.yml`:
+La fuente de verdad es `.github/workflows/tests.yml`; este documento solo resume las reglas. Corre los tests automáticamente, incluidas las pruebas del parser contra las 4 fixtures de la DGI. Si un cambio rompe el parseo, se detecta antes de mergear, no en producción.
 
-```yaml
-name: Tests
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: macos-15
-    steps:
-      - uses: actions/checkout@v4
-      - name: Run tests
-        run: xcodebuild test -project "Cuentas Claras/Cuentas Claras.xcodeproj" -scheme "Cuentas Claras" -destination "platform=iOS Simulator,name=iPhone 16"
-```
+Los runners de macOS consumen minutos a 10x, y por eso se limita cuándo corre CI:
 
-Corre los tests automáticamente en cada push y cada PR — incluye las pruebas del parser contra las 4 fixtures de la DGI. Si un cambio rompe el parseo, se detecta antes de mergear, no en producción.
+- **Cuándo corre**: en push a `main`, en PRs (al abrirse, al recibir commits, al reabrirse y al pasar de borrador a listo) y a mano con `workflow_dispatch`.
+- **No corre** en PRs en borrador ni cuando el cambio solo toca `docs/**` o archivos `.md`.
+- **Cancelación**: una corrida nueva en la misma rama cancela la anterior que siga en curso. En `main` nunca se cancela.
 
 ---
 
@@ -111,6 +103,8 @@ En GitHub: **Settings → Branches → Add rule** sobre `main`:
 
 - Exigir Pull Request antes de mergear (nada de push directo).
 - Opcional: exigir que el check de CI pase antes de poder mergear.
+
+**Estado actual**: el branch protection no está disponible en repos privados con plan gratuito de GitHub (la API responde 403), así que estas reglas no están activas. La disciplina de nunca hacer push directo a `main` se mantiene por proceso. Se activaría si el repo pasa a público o a Pro. Mientras tanto, el check de CI no es requerido.
 
 Trabajando solo se siente burocrático a veces, pero es justo la disciplina que evita saltarse el proceso "porque total es rápido".
 
