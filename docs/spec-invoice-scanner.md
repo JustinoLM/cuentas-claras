@@ -541,7 +541,7 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 
 ## 18. Roadmap por fases
 
-**Estado**: Fase 3 completa — tag `v0.3.0` (Fase 2: `v0.2.0`, Fase 1: `v0.1.0`). Detalle del pulido hecho sobre lo básico de la Fase 1 en el issue #31 (cerrado). Ideas anotadas para evaluar más adelante, sin diseñar todavía: pagos recurrentes (issue #32) e inversiones/ahorros (issue #42) — ninguna de las dos es parte de ninguna fase todavía. Siguiente: Fase 4.
+**Estado**: Fase 4 completa — tag `v0.4.0` (Fase 3: `v0.3.0`, Fase 2: `v0.2.0`, Fase 1: `v0.1.0`). Detalle del pulido hecho sobre lo básico de la Fase 1 en el issue #31 (cerrado). Ideas anotadas para evaluar más adelante, sin diseñar todavía: pagos recurrentes (issue #32) e inversiones/ahorros (issue #42) — ninguna de las dos es parte de ninguna fase todavía. Siguiente: Fase 5 (por definir).
 
 ### Fase 1 — Núcleo (Capa 1) ✅
 - Modelos SwiftData (sección 3)
@@ -564,9 +564,10 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 - Sync de facturas individuales con propagación de cambios (13.3)
 - Backup manual a OneDrive (13.4)
 
-### Fase 4 — Pulido y preparación para tienda
-- Bloqueo con Face ID/Touch ID
-- Privacy Manifest, Privacy Policy, Nutrition Label
+### Fase 4 — Pulido y preparación para tienda ✅
+- Bloqueo con Face ID/Touch ID ✅
+- Privacy Manifest ✅
+- Privacy Policy y Nutrition Label: borradores en `docs/privacy-policy-draft.md`; revisión final en la Fase 5
 - Verificación de ATS contra el dominio DGI real (sección 14) ✅
 
 ### Fase 5 — Pendientes fuera del spec original
