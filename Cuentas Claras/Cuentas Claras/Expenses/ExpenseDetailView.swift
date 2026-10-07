@@ -161,7 +161,7 @@ struct ExpenseDetailView: View {
             titleVisibility: .visible
         ) {
             Button("Eliminar", role: .destructive) {
-                modelContext.delete(expense)
+                ExpenseDeletion.delete(expense, in: modelContext)
                 dismiss()
             }
         } message: {
@@ -201,24 +201,28 @@ struct ExpenseDetailView: View {
                 initialValue: expense.issuerName
             ) { newName in
                 expense.issuerName = newName ?? expense.issuerName
+                expense.markModifiedForSync()
                 banner = ConfirmationBanner(kind: .success, message: "Nombre actualizado")
             }
         }
         .sheet(isPresented: $isShowingDateEditor) {
             DateEditorSheet(initialValue: expense.paymentDate) { newDate in
                 expense.issueDate = newDate
+                expense.markModifiedForSync()
                 banner = ConfirmationBanner(kind: .success, message: "Fecha actualizada")
             }
         }
         .sheet(isPresented: $isShowingAmountEditor) {
             AmountEditorSheet(initialValue: expense.totalAmount) { newAmount in
                 expense.totalAmount = newAmount
+                expense.markModifiedForSync()
                 banner = ConfirmationBanner(kind: .success, message: "Monto actualizado")
             }
         }
         .sheet(isPresented: $isShowingPaymentMethodEditor) {
             PaymentMethodEditorSheet(initialValue: expense.paymentMethod) { newMethod in
                 expense.paymentMethod = newMethod
+                expense.markModifiedForSync()
                 banner = ConfirmationBanner(kind: .success, message: "Método de pago actualizado")
             }
         }

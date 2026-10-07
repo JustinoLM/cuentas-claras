@@ -28,19 +28,21 @@ private func makeExpense(_ state: SyncState, in context: ModelContext) -> Expens
 }
 
 struct OneDriveAccountStoreTests {
-    @Test func firstLoginSavesIdAndResetsSyncedAndModifiedToPending() throws {
+    @Test func firstLoginSavesIdAndResetsSyncedAndModifiedToPendingButKeepsTombstones() throws {
         let context = try makeInMemoryContext()
         let store = makeStore()
         let synced = makeExpense(.synced, in: context)
         let modified = makeExpense(.modifiedLocally, in: context)
-        let deleted = makeExpense(.deletedLocally, in: context)
+        let tombstone = PendingRemoteDeletion(expenseId: UUID())
+        context.insert(tombstone)
 
         try store.registerLogin(homeAccountId: "account-a", in: context)
 
         #expect(store.homeAccountId == "account-a")
         #expect(synced.layer3SyncState == .pending)
         #expect(modified.layer3SyncState == .pending)
-        #expect(deleted.layer3SyncState == .deletedLocally)
+        #expect(try context.fetch(FetchDescriptor<PendingRemoteDeletion>()).count == 1)
+        #expect(store.everConnected)
     }
 
     @Test func differentAccountResetsStates() throws {

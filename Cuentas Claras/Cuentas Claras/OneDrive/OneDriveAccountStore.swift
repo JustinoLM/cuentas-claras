@@ -15,11 +15,17 @@ struct OneDriveAccountStore {
 
     private static let homeAccountIdKey = "oneDriveHomeAccountId"
     private static let needsReconnectionKey = "oneDriveNeedsReconnection"
+    private static let everConnectedKey = "layer3EverConnected"
 
     let defaults: UserDefaults
 
     var homeAccountId: String? {
         defaults.string(forKey: Self.homeAccountIdKey)
+    }
+
+    // Spec 3.5: pasa a true en el primer login exitoso y nunca se borra.
+    var everConnected: Bool {
+        defaults.bool(forKey: Self.everConnectedKey)
     }
 
     var needsReconnection: Bool {
@@ -35,13 +41,14 @@ struct OneDriveAccountStore {
                 switch expense.layer3SyncState {
                 case .synced, .modifiedLocally:
                     expense.layer3SyncState = .pending
-                case .pending, .deletedLocally:
+                case .pending:
                     break
                 }
             }
             try context.save()
             defaults.set(newId, forKey: Self.homeAccountIdKey)
         }
+        defaults.set(true, forKey: Self.everConnectedKey)
         needsReconnection = false
     }
 

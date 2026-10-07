@@ -18,6 +18,7 @@ struct ContentView: View {
                 guard newPhase == .active else { return }
                 Task {
                     try? await PendingLookupQueue.retryAll(in: modelContext)
+                    _ = await OneDriveSync.run(in: modelContext)
                 }
             }
     }

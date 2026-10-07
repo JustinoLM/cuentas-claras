@@ -10,7 +10,7 @@ import SwiftData
 @testable import Cuentas_Claras
 
 func makeInMemoryContext() throws -> ModelContext {
-    let schema = Schema([Expense.self, InvoiceItem.self, Merchant.self, PendingLookup.self])
+    let schema = Schema([Expense.self, InvoiceItem.self, Merchant.self, PendingLookup.self, PendingRemoteDeletion.self])
     let configuration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
     let container = try ModelContainer(for: schema, configurations: [configuration])
     return ModelContext(container)

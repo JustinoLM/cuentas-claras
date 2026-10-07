@@ -109,7 +109,7 @@ struct ExpenseListView: View {
                                 }
                                 .onDelete { offsets in
                                     for index in offsets {
-                                        modelContext.delete(group.expenses[index])
+                                        ExpenseDeletion.delete(group.expenses[index], in: modelContext)
                                     }
                                 }
                             } label: {
