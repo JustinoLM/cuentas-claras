@@ -36,7 +36,7 @@ struct QRCaptureView: View {
                 ContentUnavailableView(
                     "Escaneo no disponible",
                     systemImage: "camera.fill",
-                    description: Text("Este dispositivo no tiene cámara para escanear códigos QR. El Simulator tampoco la soporta — hay que probar la cámara en un iPhone físico. El botón de importar PDF sí funciona aquí.")
+                    description: Text("Este dispositivo no tiene cámara disponible para escanear códigos QR. Puedes importar un PDF con el código.")
                 )
             }
 
@@ -75,7 +75,7 @@ struct QRCaptureView: View {
         guard !isProcessing else { return }
 
         guard let cufe = InvoiceQRCode.cufe(fromScannedValue: scannedValue) else {
-            statusMessage = "Ese código QR no es de una factura de la DGI."
+            statusMessage = "Este código QR no corresponde a una factura de la DGI."
             return
         }
 
@@ -100,12 +100,12 @@ struct QRCaptureView: View {
         do {
             cufe = try InvoicePDFBarcodeScanner.cufe(from: document)
         } catch {
-            statusMessage = "No se encontró un código QR en el PDF."
+            statusMessage = "No encontramos un código QR en el PDF."
             return
         }
 
         guard let cufe else {
-            statusMessage = "El código QR del PDF no es de una factura de la DGI."
+            statusMessage = "El código QR del PDF no corresponde a una factura de la DGI."
             return
         }
 

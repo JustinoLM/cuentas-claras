@@ -93,11 +93,11 @@ struct SettingsView: View {
             } message: {
                 Text("Tu sesión de OneDrive expiró. Inicia sesión de nuevo para respaldar.")
             }
-            .alert("No encontramos tu archivo anterior", isPresented: $isShowingReconnectNotice) {
+            .alert("No encontramos tu archivo de exportación", isPresented: $isShowingReconnectNotice) {
                 Button("Elegir ubicación") { presentExporter() }
                 Button("Cancelar", role: .cancel) {}
             } message: {
-                Text("Elige dónde guardar el archivo.")
+                Text("Elige dónde guardarlo y exportaremos todas tus facturas de nuevo.")
             }
             .fileExporter(
                 isPresented: $isShowingExporter,
@@ -135,11 +135,11 @@ struct SettingsView: View {
             case .failed(.sessionExpired):
                 isShowingBackupReconnectPrompt = true
             case .failed(.throttled):
-                banner = ConfirmationBanner(kind: .failure, message: "OneDrive pide esperar. Inténtalo más tarde")
+                banner = ConfirmationBanner(kind: .failure, message: "OneDrive te pide esperar un momento. Inténtalo de nuevo más tarde.")
             case .failed(.networkError):
-                banner = ConfirmationBanner(kind: .failure, message: "No se pudo conectar con OneDrive")
+                banner = ConfirmationBanner(kind: .failure, message: "No se pudo conectar con OneDrive. Revisa tu conexión e inténtalo de nuevo.")
             case .failed(.httpError), .localError:
-                banner = ConfirmationBanner(kind: .failure, message: "No se pudo respaldar")
+                banner = ConfirmationBanner(kind: .failure, message: "No se pudo subir el respaldo a OneDrive. Inténtalo de nuevo.")
             }
         }
     }
@@ -155,7 +155,7 @@ struct SettingsView: View {
                 // El usuario cerró el login; no es un error.
             } catch {
                 print("OneDrive sign-in failed: \(error)")
-                banner = ConfirmationBanner(kind: .failure, message: "No se pudo conectar con OneDrive")
+                banner = ConfirmationBanner(kind: .failure, message: "No se pudo conectar con OneDrive. Revisa tu conexión e inténtalo de nuevo.")
             }
         }
     }
@@ -179,7 +179,7 @@ struct SettingsView: View {
     // con un archivo nuevo, el destino empieza vacío.
     private func presentExporter() {
         guard let expenses = try? ManualExporter.allExpenses(in: modelContext) else {
-            banner = ConfirmationBanner(kind: .failure, message: "No se pudo preparar la exportación")
+            banner = ConfirmationBanner(kind: .failure, message: "No se pudo preparar el archivo de exportación. Inténtalo de nuevo.")
             return
         }
         exportDocument = CSVDocument(text: ExpenseCSVSerializer.fullCSV(for: expenses, in: modelContext))
@@ -193,11 +193,11 @@ struct SettingsView: View {
                 let count = try ManualExporter.completeInitialExport(to: url, in: modelContext)
                 banner = ConfirmationBanner(kind: .success, message: exportedLabel(count))
             } catch {
-                banner = ConfirmationBanner(kind: .failure, message: "No se pudo guardar la ubicación del archivo")
+                banner = ConfirmationBanner(kind: .failure, message: "No se pudo guardar el archivo en la ubicación elegida. Elige otra e inténtalo de nuevo.")
             }
         case .failure(let error):
             guard (error as? CocoaError)?.code != .userCancelled else { return }
-            banner = ConfirmationBanner(kind: .failure, message: "No se pudo exportar")
+            banner = ConfirmationBanner(kind: .failure, message: "No se pudo exportar tus facturas. Inténtalo de nuevo.")
         }
     }
 
