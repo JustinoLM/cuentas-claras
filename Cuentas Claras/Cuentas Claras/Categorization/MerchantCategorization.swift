@@ -51,6 +51,7 @@ enum MerchantCategorization {
     static func setCategory(_ category: String?, for expense: Expense, in context: ModelContext) -> Bool {
         guard let issuerRuc = expense.issuerRuc else {
             expense.category = category
+            expense.markModifiedForSync()
             return true
         }
 
@@ -58,6 +59,9 @@ enum MerchantCategorization {
         descriptor.fetchLimit = 1
         guard let merchant = try? context.fetch(descriptor).first else { return false }
         merchant.category = category
+        // La categoría va en el CSV de cada factura del RUC, así que todas necesitan volver a subirse.
+        let sameRuc = (try? context.fetch(FetchDescriptor<Expense>(predicate: #Predicate { $0.issuerRuc == issuerRuc }))) ?? []
+        sameRuc.forEach { $0.markModifiedForSync() }
         return true
     }
 

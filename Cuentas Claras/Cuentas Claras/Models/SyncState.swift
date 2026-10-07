@@ -11,5 +11,4 @@ enum SyncState: String, Codable {
     case pending
     case synced
     case modifiedLocally
-    case deletedLocally
 }

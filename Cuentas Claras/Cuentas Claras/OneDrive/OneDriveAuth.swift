@@ -68,9 +68,9 @@ final class OneDriveAuth {
         refreshState()
     }
 
-    // Sin consumidor hasta 13.3. Marca el flag de reconexión cuando la renovación silenciosa pide
-    // interacción; cualquier otro error (red, etc.) se propaga sin tocar el flag.
-    func accessToken() async throws -> String {
+    // Marca el flag de reconexión cuando la renovación silenciosa pide interacción; cualquier otro
+    // error (red, etc.) se propaga sin tocar el flag. `forceRefresh` es para el reintento tras un 401.
+    func accessToken(forceRefresh: Bool = false) async throws -> String {
         guard let homeAccountId = store.homeAccountId else { throw OneDriveAuthError.notConnected }
         guard !store.needsReconnection else { throw OneDriveAuthError.reconnectionRequired }
 
@@ -82,6 +82,7 @@ final class OneDriveAuth {
         }
 
         let parameters = MSALSilentTokenParameters(scopes: Self.scopes, account: account)
+        parameters.forceRefresh = forceRefresh
         do {
             let result: MSALResult = try await withCheckedThrowingContinuation { continuation in
                 application.acquireTokenSilent(with: parameters) { result, error in
@@ -109,7 +110,7 @@ final class OneDriveAuth {
         refreshState()
     }
 
-    private func markReconnectionRequired() {
+    func markReconnectionRequired() {
         store.needsReconnection = true
         refreshState()
     }

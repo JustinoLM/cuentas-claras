@@ -91,7 +91,6 @@ enum SyncState: String, Codable {
     case pending
     case synced
     case modifiedLocally
-    case deletedLocally
 }
 ```
 
@@ -141,7 +140,20 @@ final class PendingLookup {
 }
 ```
 
-### 3.5 Nota sobre CloudKit
+### 3.5 Borrados pendientes en OneDrive: `PendingRemoteDeletion`
+
+```swift
+@Model
+final class PendingRemoteDeletion {
+    var expenseId: UUID
+}
+```
+
+Un `Expense` siempre se borra en duro del almacenamiento local. Si `layer3EverConnected` es `true`, además se crea un `PendingRemoteDeletion` con el `id` del gasto borrado, para que el sync (sección 13.3) elimine el archivo remoto. Si es `false`, no se crea nada.
+
+`layer3EverConnected` es un `Bool` en `UserDefaults` que pasa a `true` en el primer login exitoso y nunca se borra: ni al desconectar ni al cambiar de cuenta. Así, quien nunca conectó OneDrive no acumula registros que no se van a procesar.
+
+### 3.6 Nota sobre CloudKit
 
 Se evaluó sincronizar SwiftData vía CloudKit como mecanismo de backup universal, y se descartó a favor de reusar la conexión de la Capa 3 para el respaldo manual (ver sección 13.4) — decisión explícita del usuario. **No está en el alcance de este spec.** Si en el futuro se reconsidera, la restricción a tener en cuenta es que todos los campos del modelo tendrían que ser opcionales o con valor por defecto (requisito de cómo CloudKit resuelve conflictos) — no aplica al modelo tal como está descrito arriba.
 
@@ -428,21 +440,23 @@ Un archivo por `Expense`, nombrado por su `id` (UUID) — **no por CUFE**, para 
 PUT /me/drive/special/approot:/Facturas/{uuid}.csv:/content
 ```
 
-Propagación de cambios vía el campo `layer3SyncState`:
+Propagación de cambios vía el campo `layer3SyncState`, más la cola `PendingRemoteDeletion` (sección 3.5) para los borrados:
 
-| Estado | Acción en el próximo ciclo de sync |
+| Origen | Acción en el próximo ciclo de sync |
 |---|---|
-| `.pending` (nuevo) | `PUT` crear archivo nuevo → pasa a `.synced` |
-| `.modifiedLocally` (editado después de ya sincronizado) | `PUT` sobreescribe el mismo archivo (mismo UUID) → pasa a `.synced` |
-| `.deletedLocally` (borrado local, borrado suave) | `DELETE` del archivo remoto; si responde OK, ahí sí se borra el registro local de verdad. Un `DELETE` con respuesta 404 se trata como éxito |
+| `Expense` en `.pending` (nuevo) | `PUT` crear archivo nuevo → pasa a `.synced` |
+| `Expense` en `.modifiedLocally` (editado después de ya sincronizado) | `PUT` sobreescribe el mismo archivo (mismo UUID) → pasa a `.synced` |
+| `PendingRemoteDeletion` (gasto ya borrado localmente) | `DELETE /me/drive/special/approot:/Facturas/{uuid}.csv`; con respuesta 2xx o 404 (el archivo ya no existe, que es lo que se quería) se borra el `PendingRemoteDeletion` |
 
-**Trigger**: mismo patrón que la cola offline (sección 8) — al volver la app a primer plano con conexión. No hay timer de background.
+Los `PendingRemoteDeletion` se crean aunque la cuenta esté desconectada, siempre que `layer3EverConnected` sea `true`; el sync no los procesa hasta que haya `homeAccountId`.
 
-**Cambio de cuenta**: al completar un login, si el `homeAccountId` guardado (UserDefaults; es un identificador, no un secreto) es nil o distinto del nuevo, se guarda y los `Expense` en `.synced` o `.modifiedLocally` pasan a `.pending` (los `.deletedLocally` no se tocan). Si es igual, no se toca ningún estado. Al desconectar manualmente se borra el `homeAccountId`. La reconexión por sesión expirada no lo borra.
+**Trigger**: mismo patrón que la cola offline (sección 8) — al volver la app a primer plano. No hay timer de background. El ciclo no corre si no hay `homeAccountId` o si el flag de reconexión está activo, y nunca corren dos ciclos a la vez. Un error de red corta el ciclo y lo pendiente queda igual, como en la cola offline.
 
-**Sesión expirada**: si la renovación silenciosa falla pidiendo interacción, se marca un flag local y el sync se salta mientras esté activo. Ajustes muestra "Reconexión necesaria" con botón de login. Los registros siguen en `.pending`. Un 401 de Graph se reintenta una vez tras renovar el token; dos fallos seguidos cuentan como sesión expirada.
+**Cambio de cuenta**: al completar un login, si el `homeAccountId` guardado (UserDefaults; es un identificador, no un secreto) es nil o distinto del nuevo, se guarda y los `Expense` en `.synced` o `.modifiedLocally` pasan a `.pending`. Los `PendingRemoteDeletion` no se tocan: con otra cuenta su `DELETE` responde 404 y se purgan. Si el `homeAccountId` es igual, no se toca ningún estado. Al desconectar manualmente se borra el `homeAccountId`. La reconexión por sesión expirada no lo borra.
 
-**Throttling**: los `PUT` van en secuencia, sin concurrencia. Ante un 429 el ciclo se detiene, lo pendiente queda en `.pending` y se reanuda en el siguiente primer plano. `Retry-After` no se usa como timer.
+**Sesión expirada**: si la renovación silenciosa falla pidiendo interacción, se marca un flag local y el sync se salta mientras esté activo. Ajustes muestra "Reconexión necesaria" con botón de login. Los registros siguen en `.pending`. Un 401 de Graph se reintenta una vez tras renovar el token; dos fallos seguidos cuentan como sesión expirada. La misma regla aplica si hay un `homeAccountId` guardado pero MSAL no encuentra esa cuenta en su caché (por ejemplo, tras restaurar un backup en otro dispositivo, porque el token es `ThisDeviceOnly`): se marca el flag y Ajustes muestra "Reconexión necesaria".
+
+**Throttling**: los `PUT` y los `DELETE` van en secuencia, sin concurrencia. Ante un 429 el ciclo se detiene, lo pendiente queda en `.pending` y se reanuda en el siguiente primer plano. `Retry-After` no se usa como timer.
 
 **Nota sobre Power Query**: si el usuario ya combinó estos archivos en una tabla de Excel, un `DELETE` remoto no desaparece de esa tabla hasta que el usuario haga un refresh manual en Excel — comportamiento normal de Power Query, no un bug de la app. Los archivos viven bajo `Apps/Cuentas Claras` en el OneDrive del usuario. Si el usuario renombra o mueve esa carpeta, la app sigue funcionando (usa `special/approot`), pero su consulta de Power Query apunta a la ruta vieja y se rompe.
 
