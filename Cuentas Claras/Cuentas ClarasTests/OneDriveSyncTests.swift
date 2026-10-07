@@ -51,6 +51,7 @@ private func makeExpense(_ state: SyncState, in context: ModelContext) -> Expens
     return expense
 }
 
+@MainActor
 struct OneDriveSyncTests {
     @Test func uploadsPendingAndModifiedAndMarksThemSynced() async throws {
         let context = try makeInMemoryContext()
@@ -101,7 +102,7 @@ struct OneDriveSyncTests {
         #expect(try context.fetch(FetchDescriptor<PendingRemoteDeletion>()).count == 1)
     }
 
-    @Test @MainActor func skipsWithoutAccountOrWhileReconnectionIsNeeded() async throws {
+    @Test func skipsWithoutAccountOrWhileReconnectionIsNeeded() async throws {
         let context = try makeInMemoryContext()
         _ = makeExpense(.pending, in: context)
         let recorder = RequestRecorder()
