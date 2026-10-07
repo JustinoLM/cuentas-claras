@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		0F10CA6948EB2EF682EEA32E /* SwiftSoup in Frameworks */ = {isa = PBXBuildFile; productRef = DBC1B24C915E9C778071E5E2 /* SwiftSoup */; };
+		53EDF04F3075BFD1000C174E /* MSAL in Frameworks */ = {isa = PBXBuildFile; productRef = 53EDF04E3075BFD1000C174E /* MSAL */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -43,6 +44,7 @@
 			isa = PBXFrameworksBuildPhase;
 			files = (
 				0F10CA6948EB2EF682EEA32E /* SwiftSoup in Frameworks */,
+				53EDF04F3075BFD1000C174E /* MSAL in Frameworks */,
 			);
 		};
 		533C468A305F8A2500DC3D5B /* Frameworks */ = {
@@ -90,6 +92,7 @@
 			name = "Cuentas Claras";
 			packageProductDependencies = (
 				DBC1B24C915E9C778071E5E2 /* SwiftSoup */,
+				53EDF04E3075BFD1000C174E /* MSAL */,
 			);
 			productName = "Cuentas Claras";
 			productReference = 533C467E305F8A2400DC3D5B /* Cuentas Claras.app */;
@@ -146,6 +149,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				A614509CD9F95EB75B57D224 /* XCRemoteSwiftPackageReference "SwiftSoup" */,
+				53EDF04D3075BFD1000C174E /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 533C467F305F8A2400DC3D5B /* Products */;
@@ -324,6 +328,7 @@
 				DEVELOPMENT_TEAM = X3AKMAA6B8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_FILE[sdk=*]" = Info.plist;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Se usa la cámara para escanear el código QR de las facturas electrónicas.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -359,6 +364,7 @@
 				DEVELOPMENT_TEAM = X3AKMAA6B8;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				"INFOPLIST_FILE[sdk=*]" = Info.plist;
 				INFOPLIST_KEY_LSSupportsOpeningDocumentsInPlace = YES;
 				INFOPLIST_KEY_NSCameraUsageDescription = "Se usa la cámara para escanear el código QR de las facturas electrónicas.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -458,6 +464,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		53EDF04D3075BFD1000C174E /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/AzureAD/microsoft-authentication-library-for-objc";
+			requirement = {
+				kind = exactVersion;
+				version = 2.16.0;
+			};
+		};
 		A614509CD9F95EB75B57D224 /* XCRemoteSwiftPackageReference "SwiftSoup" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/scinfu/SwiftSoup";
@@ -469,6 +483,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		53EDF04E3075BFD1000C174E /* MSAL */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 53EDF04D3075BFD1000C174E /* XCRemoteSwiftPackageReference "microsoft-authentication-library-for-objc" */;
+			productName = MSAL;
+		};
 		DBC1B24C915E9C778071E5E2 /* SwiftSoup */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = A614509CD9F95EB75B57D224 /* XCRemoteSwiftPackageReference "SwiftSoup" */;
