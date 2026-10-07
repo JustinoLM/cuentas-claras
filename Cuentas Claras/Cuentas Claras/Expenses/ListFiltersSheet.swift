@@ -22,9 +22,20 @@ struct ListFilters {
     var ruc: RUCFilter = .all
     var categories: Set<String> = []
     var paymentMethods: Set<String> = []
+    var dateFrom: Date?
+    var dateTo: Date?
 
     var isActive: Bool {
-        ruc != .all || !categories.isEmpty || !paymentMethods.isEmpty
+        ruc != .all || !categories.isEmpty || !paymentMethods.isEmpty || dateFrom != nil || dateTo != nil
+    }
+
+    // Rango inclusivo comparado por día calendario, no por instante: una factura de las 23:59 del día
+    // "Hasta" tiene que entrar, y el DatePicker devuelve una hora arbitraria del día elegido.
+    func includes(date: Date, calendar: Calendar = .current) -> Bool {
+        let day = calendar.startOfDay(for: date)
+        if let dateFrom, day < calendar.startOfDay(for: dateFrom) { return false }
+        if let dateTo, day > calendar.startOfDay(for: dateTo) { return false }
+        return true
     }
 }
 
@@ -46,6 +57,28 @@ struct ListFiltersSheet: View {
                     }
                     .pickerStyle(.segmented)
                     .labelsHidden()
+                }
+
+                Section("Fecha") {
+                    Toggle("Desde", isOn: dateToggle(\.dateFrom, limit: filters.dateTo, isUpperBound: false))
+                    if filters.dateFrom != nil {
+                        DatePicker(
+                            "Fecha de inicio",
+                            selection: dateBinding(\.dateFrom),
+                            in: Date.distantPast...(filters.dateTo ?? .distantFuture),
+                            displayedComponents: .date
+                        )
+                    }
+
+                    Toggle("Hasta", isOn: dateToggle(\.dateTo, limit: filters.dateFrom, isUpperBound: true))
+                    if filters.dateTo != nil {
+                        DatePicker(
+                            "Fecha de fin",
+                            selection: dateBinding(\.dateTo),
+                            in: (filters.dateFrom ?? .distantPast)...Date.distantFuture,
+                            displayedComponents: .date
+                        )
+                    }
                 }
 
                 if !availableCategories.isEmpty {
@@ -79,6 +112,33 @@ struct ListFiltersSheet: View {
                 }
             }
         }
+    }
+
+    // Al encender un extremo arranca en hoy, ajustado al otro extremo si ya existe para que el rango
+    // nunca quede invertido.
+    private func dateToggle(_ keyPath: WritableKeyPath<ListFilters, Date?>, limit: Date?, isUpperBound: Bool) -> Binding<Bool> {
+        Binding(
+            get: { filters[keyPath: keyPath] != nil },
+            set: { isOn in
+                guard isOn else {
+                    filters[keyPath: keyPath] = nil
+                    return
+                }
+                let today = Calendar.current.startOfDay(for: Date())
+                if let limit {
+                    filters[keyPath: keyPath] = isUpperBound ? max(today, limit) : min(today, limit)
+                } else {
+                    filters[keyPath: keyPath] = today
+                }
+            }
+        )
+    }
+
+    private func dateBinding(_ keyPath: WritableKeyPath<ListFilters, Date?>) -> Binding<Date> {
+        Binding(
+            get: { filters[keyPath: keyPath] ?? Calendar.current.startOfDay(for: Date()) },
+            set: { filters[keyPath: keyPath] = Calendar.current.startOfDay(for: $0) }
+        )
     }
 
     private func toggleRow(_ label: String, isOn: Bool, action: @escaping () -> Void) -> some View {
