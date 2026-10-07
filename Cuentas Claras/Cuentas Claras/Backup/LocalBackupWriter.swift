@@ -39,6 +39,6 @@ enum LocalBackupWriter {
         }
         let csv = ExpenseCSVSerializer.fullCSV(for: expenses, in: context)
         let fileURL = documentsURL.appendingPathComponent(fileName)
-        try? csv.write(to: fileURL, atomically: true, encoding: .utf8)
+        try? Data(csv.utf8).write(to: fileURL, options: .atomic)
     }
 }

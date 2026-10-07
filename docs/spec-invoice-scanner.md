@@ -402,7 +402,7 @@ El `NOMBRE` que trae la factura de la DGI es la razón social registrada en el R
 
 Una fila por ítem (denormalizado), con los campos de cabecera repetidos en cada línea para que no haga falta un join en Excel/Power Query. Los nombres de columna son los mismos identificadores en inglés usados en el modelo (sección 3); los campos a nivel de ítem llevan el prefijo `item` para no chocar con los campos a nivel de factura.
 
-Codificación y formatos: UTF-8 con BOM (`EF BB BF`) al inicio de cada archivo; en Capa 2 (append) el BOM se escribe solo cuando el archivo está vacío, junto con la cabecera. Fechas en ISO 8601 sin zona horaria, en la hora local del dispositivo: `yyyy-MM-dd` para `issueDate` y `yyyy-MM-dd HH:mm:ss` (separador espacio) para `authorizationDate` y `scanDate`. Números con punto decimal y sin separador de miles. Los formateadores usan `Locale` `en_US_POSIX` para no depender de la región del dispositivo. Motivo: Excel y Power BI con configuración regional distinta de dd/MM leían mal el formato anterior.
+Codificación y formatos: UTF-8 con BOM (`EF BB BF`) al inicio de cada archivo; en Capa 2 (append) el BOM se escribe solo cuando el archivo está vacío, junto con la cabecera. Fechas en ISO 8601 sin zona horaria, en hora de Panamá (`America/Panama`, fija): `yyyy-MM-dd` para `issueDate` y `yyyy-MM-dd HH:mm:ss` (separador espacio) para `authorizationDate` y `scanDate`. Números con punto decimal y sin separador de miles. Los formateadores usan `Locale` `en_US_POSIX` para no depender de la región del dispositivo. Motivo: Excel y Power BI con configuración regional distinta de dd/MM leían mal el formato anterior.
 
 | Columna | Ejemplo | Notas |
 |---|---|---|

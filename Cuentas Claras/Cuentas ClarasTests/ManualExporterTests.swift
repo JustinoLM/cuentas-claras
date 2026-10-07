@@ -43,11 +43,47 @@ struct ManualExporterTests {
         #expect(try ManualExporter.export(to: url, fileSchemaVersion: version, in: context) == .exported(count: 1))
         #expect(second.layer2ExportedAt != nil)
 
-        let lines = try String(contentsOf: url, encoding: .utf8).components(separatedBy: "\r\n").filter { !$0.isEmpty }
+        let data = try Data(contentsOf: url)
+        #expect(Array(data.prefix(3)) == [0xEF, 0xBB, 0xBF])
+        #expect(String(decoding: data, as: UTF8.self).components(separatedBy: ExpenseCSVSerializer.bom).count == 2)
+        let lines = String(decoding: data.dropFirst(3), as: UTF8.self).components(separatedBy: "\r\n").filter { !$0.isEmpty }
         #expect(lines.count == 3)
         #expect(lines.filter { $0 == ExpenseCSVSerializer.headerLine }.count == 1)
         #expect(lines.filter { $0.contains("El Rey") }.count == 1)
         #expect(lines.filter { $0.contains("Super 99") }.count == 1)
+    }
+
+    @Test func appendWritesBOMAndHeaderOnlyIntoAnEmptyFile() throws {
+        let context = try makeInMemoryContext()
+        let url = try makeEmptyFile()
+        defer { try? FileManager.default.removeItem(at: url) }
+        let version = ExpenseCSVSerializer.schemaVersion
+
+        _ = makeExpense("El Rey", in: context)
+        _ = try ManualExporter.export(to: url, fileSchemaVersion: version, in: context)
+        let afterFirst = try Data(contentsOf: url)
+        #expect(Array(afterFirst.prefix(3)) == [0xEF, 0xBB, 0xBF])
+        #expect(String(decoding: afterFirst.dropFirst(3), as: UTF8.self).hasPrefix(ExpenseCSVSerializer.headerLine))
+
+        _ = makeExpense("Super 99", in: context)
+        _ = try ManualExporter.export(to: url, fileSchemaVersion: version, in: context)
+        let text = String(decoding: try Data(contentsOf: url), as: UTF8.self)
+        #expect(text.components(separatedBy: ExpenseCSVSerializer.bom).count == 2)
+    }
+
+    // 11.1: un archivo con versión anterior se regenera completo antes de cualquier append, así que
+    // nunca conviven filas con formato viejo y nuevo.
+    @Test func fileFromOlderSchemaIsRegeneratedWholeNeverAppended() throws {
+        let context = try makeInMemoryContext()
+        let url = try makeEmptyFile()
+        defer { try? FileManager.default.removeItem(at: url) }
+        try Data("01/09/2026,old row\r\n".utf8).write(to: url)
+
+        _ = makeExpense("El Rey", in: context)
+        _ = try ManualExporter.export(to: url, fileSchemaVersion: ExpenseCSVSerializer.schemaVersion - 1, in: context)
+
+        let expected = ExpenseCSVSerializer.fullCSV(for: try ManualExporter.allExpenses(in: context), in: context)
+        #expect(try Data(contentsOf: url) == Data(expected.utf8))
     }
 
     @Test func nothingToExportLeavesTheFileUntouched() throws {

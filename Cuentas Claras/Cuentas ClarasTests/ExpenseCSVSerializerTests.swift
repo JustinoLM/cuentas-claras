@@ -36,6 +36,35 @@ struct ExpenseCSVSerializerTests {
         ].joined(separator: ","))
     }
 
+    @Test func fullCSVStartsWithUTF8BOMAndHeaderLineDoesNot() throws {
+        let context = try makeInMemoryContext()
+        let csv = ExpenseCSVSerializer.fullCSV(for: [], in: context)
+
+        #expect(Array(Data(csv.utf8).prefix(3)) == [0xEF, 0xBB, 0xBF])
+        #expect(!ExpenseCSVSerializer.headerLine.hasPrefix(ExpenseCSVSerializer.bom))
+    }
+
+    // Un día de 12 o menos es el caso que dd/MM vs MM/dd invertía en silencio; el 19 no puede ser mes.
+    @Test func datesAreISO8601RegardlessOfDayValue() throws {
+        let context = try makeInMemoryContext()
+        let expense = Expense(
+            documentType: "MANUAL",
+            issueDate: panamaDate(2026, 8, 4),
+            authorizationDate: panamaDate(2026, 9, 19, hour: 14, minute: 52, second: 59),
+            issuerName: "El Rey",
+            totalAmount: 1,
+            totalItbms: 0,
+            source: .manual,
+            scanDate: panamaDate(2026, 8, 4, hour: 9, minute: 5, second: 3)
+        )
+        context.insert(expense)
+
+        let fields = try #require(ExpenseCSVSerializer.rows(for: [expense], in: context).first).components(separatedBy: ",")
+        #expect(fields[3] == "2026-08-04")
+        #expect(fields[4] == "2026-09-19 14:52:59")
+        #expect(fields[23] == "2026-08-04 09:05:03")
+    }
+
     @Test func dgiExpenseProducesOneRowPerItemWithCategoryFromMerchant() throws {
         let context = try makeInMemoryContext()
         context.insert(Merchant(ruc: "2029164-1-744562", name: "JV PANAMA S.A.", category: "Comida"))
@@ -73,14 +102,14 @@ struct ExpenseCSVSerializerTests {
         #expect(rows.count == 2)
 
         let firstFields = rows[0].components(separatedBy: ",")
-        #expect(firstFields[3] == "19/09/2026")
-        #expect(firstFields[4] == "19/09/2026 14:52:59")
+        #expect(firstFields[3] == "2026-09-19")
+        #expect(firstFields[4] == "2026-09-19 14:52:59")
         #expect(firstFields[7] == "Comida")
         #expect(firstFields[9] == "1")
         #expect(firstFields[11] == "Cafe Americano 12 Oz")
         #expect(firstFields[12] == "2.00")
         #expect(firstFields[18] == "12.10")
-        #expect(firstFields[23] == "19/09/2026 14:52:59")
+        #expect(firstFields[23] == "2026-09-19 14:52:59")
 
         let secondFields = rows[1].components(separatedBy: ",")
         #expect(secondFields[9] == "2")

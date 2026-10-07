@@ -13,7 +13,12 @@ import SwiftData
 // so opening the file in Excel/Power Query never needs a join. Column order and names are
 // load-bearing — any change here needs schema versioning (section 11.1), not just an edit.
 enum ExpenseCSVSerializer {
-    static let schemaVersion = 1
+    // 2: BOM UTF-8 and ISO 8601 dates (section 11).
+    static let schemaVersion = 2
+
+    // Excel only detects UTF-8 (accents) when the file starts with a BOM. Prepended once per file by
+    // `fullCSV` and by the Capa 2 append path when it writes into an empty file.
+    static let bom = "\u{FEFF}"
 
     static let header = [
         "id", "cufe", "documentType", "issueDate", "authorizationDate", "issuerRuc", "issuerName",
@@ -27,7 +32,7 @@ enum ExpenseCSVSerializer {
     // Full file: header + every row. Used by the Capa 0 backup (regenerated whole each time) and by
     // the Capa 2 first export / schema-version-mismatch regeneration (section 11.1).
     static func fullCSV(for expenses: [Expense], in context: ModelContext) -> String {
-        ([headerLine] + rows(for: expenses, in: context)).map { $0 + "\r\n" }.joined()
+        bom + ([headerLine] + rows(for: expenses, in: context)).map { $0 + "\r\n" }.joined()
     }
 
     // Rows only, no header — used by the Capa 2 append path, which only writes expenses where
@@ -85,7 +90,7 @@ enum ExpenseCSVSerializer {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(identifier: "America/Panama")
-        formatter.dateFormat = "dd/MM/yyyy"
+        formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
 
@@ -93,7 +98,7 @@ enum ExpenseCSVSerializer {
         let formatter = DateFormatter()
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone(identifier: "America/Panama")
-        formatter.dateFormat = "dd/MM/yyyy HH:mm:ss"
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss"
         return formatter
     }()
 

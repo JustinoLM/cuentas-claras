@@ -16,8 +16,15 @@ struct OneDriveAccountStore {
     private static let homeAccountIdKey = "oneDriveHomeAccountId"
     private static let needsReconnectionKey = "oneDriveNeedsReconnection"
     private static let everConnectedKey = "layer3EverConnected"
+    private static let lastSyncedSchemaVersionKey = "oneDriveLastSyncedSchemaVersion"
 
     let defaults: UserDefaults
+
+    // Spec 11.1: nil (nunca guardada) cuenta como distinta de la versión actual.
+    var lastSyncedSchemaVersion: Int? {
+        get { defaults.object(forKey: Self.lastSyncedSchemaVersionKey) as? Int }
+        nonmutating set { defaults.set(newValue, forKey: Self.lastSyncedSchemaVersionKey) }
+    }
 
     var homeAccountId: String? {
         defaults.string(forKey: Self.homeAccountIdKey)
@@ -47,6 +54,9 @@ struct OneDriveAccountStore {
             }
             try context.save()
             defaults.set(newId, forKey: Self.homeAccountIdKey)
+            // Todo quedó en .pending y se subirá con el formato actual: no hay nada que retransmitir
+            // por cambio de schemaVersion.
+            lastSyncedSchemaVersion = ExpenseCSVSerializer.schemaVersion
         }
         defaults.set(true, forKey: Self.everConnectedKey)
         needsReconnection = false
