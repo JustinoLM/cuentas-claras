@@ -131,7 +131,7 @@ git push origin v0.1.0
 | `v0.2.0` | Fase 2 — Capa 0 + Capa 2 |
 | `v0.3.0` | Fase 3 — Capa 3 (OneDrive) |
 | `v0.4.0` | Fase 4 — Pulido y preparación para tienda |
-| `v1.0.0` | Fase 5 — Por definir |
+| `v1.0.0` | Fase 5 — Cierre de código de v1.0.0 |
 
 ---
 
