@@ -1,33 +1,12 @@
-# Privacy drafts
+# Privacy policy draft
 
-Drafts of the Privacy Policy and the App Store Connect Nutrition Label (App Privacy). Not final: the final review happens in Phase 5, before the first App Review submission (spec section 18). The policy text itself is in Spanish because that is the app's language; headings and notes are in English.
-
-## Nutrition Label (App Store Connect > App Privacy)
-
-"Do you or your third-party partners collect data from this app?": **Yes**.
-
-Conservative option: declare the data types listed in MSAL's own `PrivacyInfo.xcprivacy` (MSAL 2.16.0), following MSAL's linked/not linked value per type, plus Purchase History. All with tracking off and purpose **App Functionality**.
-
-| Category | Data type | Linked to user | Tracking | Source |
-|---|---|---|---|---|
-| Contact Info | Name | Yes | No | MSAL manifest: Name |
-| Contact Info | Email Address | Yes | No | MSAL manifest: EmailAddress |
-| Contact Info | Other User Contact Info | Yes | No | MSAL manifest: OtherUserContactInfo |
-| Contact Info | Phone Number | **No** | No | MSAL manifest: PhoneNumber |
-| User Content | Customer Support | Yes | No | MSAL manifest: CustomerSupport |
-| Identifiers | User ID | Yes | No | MSAL manifest: UserID |
-| Identifiers | Device ID | Yes | No | MSAL manifest: DeviceID |
-| Diagnostics | Other Diagnostic Data | Yes | No | MSAL manifest: OtherDiagnosticData |
-| Purchases | Purchase History | Yes | No | App: invoice CSV files uploaded to the user's own OneDrive |
-
-The "Privacy Policy URL" field (App Information) takes the URL where the policy below ends up published.
+Draft of the app's privacy policy. The app is a personal and portfolio project and is not distributed on the App Store, so this is not submitted anywhere; it documents what the app does with data. Not final. The policy text itself is in Spanish because that is the app's language; headings and notes are in English.
 
 ## Not verifiable against the code
 
-- **Exact data MSAL sends.** Defined by Microsoft. The table follows MSAL's own manifest, but what it actually transmits, and how long Microsoft retains it, cannot be confirmed from this repo.
-- **Whether App Review accepts "the data goes to Microsoft, not to the developer" as not collected.** That is why the conservative option declares it.
-- **Purchase History.** The CSV content (issuer, RUC, items, amounts, payment method) goes to the user's own Microsoft account, not to the developer. It is declared under the same conservative logic as the MSAL types; Apple's classification is App Review's call.
-- **The DGI lookup.** A CUFE is sent to a public government endpoint, not to the developer or a partner. It is not declared in the label, which is a judgment call and not a verifiable fact.
+- **Exact data MSAL sends.** Defined by Microsoft; what it actually transmits, and how long Microsoft retains it, cannot be confirmed from this repo. The data types MSAL declares are in its own `PrivacyInfo.xcprivacy`.
+- **Invoice CSV content.** The content (issuer, RUC, items, amounts, payment method) goes to the user's own Microsoft account, not to the developer.
+- **The DGI lookup.** A CUFE is sent to a public government endpoint, not to the developer or a partner.
 - **Date and contact email** in the policy are placeholders.
 
 ## Privacy Policy (draft, Spanish)
