@@ -18,6 +18,7 @@ struct Cuentas_ClarasApp: App {
             Merchant.self,
             PendingLookup.self,
             PendingRemoteDeletion.self,
+            RecurringPayment.self,
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 

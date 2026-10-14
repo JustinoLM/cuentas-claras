@@ -13,8 +13,8 @@ import SwiftData
 // so opening the file in Excel/Power Query never needs a join. Column order and names are
 // load-bearing — any change here needs schema versioning (section 11.1), not just an edit.
 enum ExpenseCSVSerializer {
-    // 2: BOM UTF-8 and ISO 8601 dates (section 11).
-    static let schemaVersion = 2
+    // 2: BOM UTF-8 and ISO 8601 dates (section 11). 3: recurringId column (section 19).
+    static let schemaVersion = 3
 
     // Excel only detects UTF-8 (accents) when the file starts with a BOM. Prepended once per file by
     // `fullCSV` and by the Capa 2 append path when it writes into an empty file.
@@ -25,6 +25,7 @@ enum ExpenseCSVSerializer {
         "category", "invoiceNumber", "lineNumber", "itemCode", "itemDescription", "quantity",
         "unitPrice", "unitDiscount", "itemAmount", "itemItbms", "itemTotal", "totalAmount",
         "totalItbms", "paymentMethod", "totalPaid", "source", "scanDate", "referencedCufe",
+        "recurringId",
     ]
 
     static let headerLine = csvLine(header)
@@ -79,6 +80,7 @@ enum ExpenseCSVSerializer {
             expense.source.rawValue,
             dateTimeString(expense.scanDate),
             expense.referencedCufe ?? "",
+            expense.recurringId?.uuidString ?? "",
         ]
     }
 

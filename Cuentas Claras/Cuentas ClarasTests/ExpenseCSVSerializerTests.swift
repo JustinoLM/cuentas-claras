@@ -33,6 +33,7 @@ struct ExpenseCSVSerializerTests {
             "category", "invoiceNumber", "lineNumber", "itemCode", "itemDescription", "quantity",
             "unitPrice", "unitDiscount", "itemAmount", "itemItbms", "itemTotal", "totalAmount",
             "totalItbms", "paymentMethod", "totalPaid", "source", "scanDate", "referencedCufe",
+            "recurringId",
         ].joined(separator: ","))
     }
 
