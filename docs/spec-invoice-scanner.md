@@ -662,7 +662,10 @@ Diseño decidido el 2026-10-07. Se implementa en este orden y se mergea en secue
 - Omitir avanza `nextDueDate` sin crear gasto.
 - Periodos: mensual y anual caen en el día de `anchorDate`; si el mes no tiene ese día, se usa el último día del mes, calculando siempre desde `anchorDate` y no desde el vencimiento anterior. Anual con ancla 29 de febrero cae en 28 en años no bisiestos. Quincenal: día 15 y último día de cada mes (mismo corte que la analítica por quincena), sin importar el día de `anchorDate`; el primer vencimiento es el próximo 15 o fin de mes desde `anchorDate`.
 - Pausar detiene los vencimientos. Al reanudar, `nextDueDate` pasa al primer vencimiento desde hoy inclusive, sin acumular los del periodo pausado.
-- Editar una plantilla afecta solo vencimientos futuros. Borrar una plantilla o un gasto generado no borra ni regenera el otro.
+- Editar una plantilla afecta solo vencimientos futuros. Editar `frequency` o `anchorDate` recalcula `nextDueDate` al primer vencimiento desde hoy inclusive; editar nombre, monto, categoría o método de pago no toca el calendario.
+- Calendario: los vencimientos y "hoy" se calculan con un calendario gregoriano fijo en `America/Panama` (igual que el CSV, sección 11), y los vencimientos se almacenan a las 12:00 para que ningún borde de medianoche cambie el día. Las fechas elegidas en un selector se convierten tomando año, mes y día del calendario del dispositivo y reconstruyéndolas a las 12:00 en Panamá.
+- Al crear una plantilla con fecha pasada, los vencimientos atrasados aparecen en "Por confirmar" y se pueden omitir. La fecha por defecto del formulario es hoy.
+- Borrar una plantilla o un gasto generado no borra ni regenera el otro.
 - Las plantillas no se exportan a ninguna capa. Los gastos generados viajan en el CSV de la sección 11 como cualquier gasto, con `recurringId`.
 
 ---
