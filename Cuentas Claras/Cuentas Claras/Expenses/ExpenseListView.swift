@@ -11,7 +11,11 @@ import SwiftData
 // Spec section 15, pantalla 1 — raíz de la app.
 struct ExpenseListView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @Query(sort: \Expense.scanDate, order: .reverse) private var expenses: [Expense]
+    @Query private var recurringPayments: [RecurringPayment]
+    @State private var today = RecurrenceSchedule.today()
+    @State private var isShowingRecurring = false
     @State private var searchText = ""
     @State private var isShowingCapture = false
     @State private var isShowingUncategorized = false
@@ -29,6 +33,10 @@ struct ExpenseListView: View {
 
     private var availablePaymentMethods: [String] {
         Array(Set(expenses.compactMap(\.paymentMethod))).sorted()
+    }
+
+    private var recurringDueCount: Int {
+        RecurringPaymentActions.pendingDues(for: recurringPayments, today: today).count
     }
 
     private var filteredExpenses: [Expense] {
@@ -130,8 +138,27 @@ struct ExpenseListView: View {
                     .searchable(text: $searchText, prompt: "Buscar por negocio")
                 }
             }
+            .safeAreaInset(edge: .top) {
+                if recurringDueCount > 0 {
+                    RecurringDueRow(count: recurringDueCount) {
+                        isShowingRecurring = true
+                    }
+                }
+            }
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .active {
+                    today = RecurrenceSchedule.today()
+                }
+            }
             .navigationTitle("Mis Facturas")
             .toolbar {
+                ToolbarItem(placement: .secondaryAction) {
+                    Button {
+                        isShowingRecurring = true
+                    } label: {
+                        Label("Pagos recurrentes", systemImage: "repeat")
+                    }
+                }
                 ToolbarItem(placement: .secondaryAction) {
                     Button {
                         isShowingUncategorized = true
@@ -193,6 +220,9 @@ struct ExpenseListView: View {
             .sheet(isPresented: $isShowingSettings) {
                 SettingsView()
             }
+            .sheet(isPresented: $isShowingRecurring) {
+                RecurringPaymentsView()
+            }
             .sheet(isPresented: $isShowingFilters) {
                 ListFiltersSheet(
                     filters: $filters,
@@ -230,6 +260,30 @@ private struct ExpenseRow: View {
 
 // Chips removibles con los filtros activos — sin esto, no había forma de saber qué se estaba
 // filtrando sin volver a abrir la hoja de filtros.
+// Indicador fijo arriba de la lista (spec 19): solo existe mientras haya vencimientos por confirmar.
+private struct RecurringDueRow: View {
+    let count: Int
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: "repeat")
+                Text(count == 1 ? "1 pago por confirmar" : "\(count) pagos por confirmar")
+                Spacer()
+                Image(systemName: "chevron.right")
+                    .font(.caption)
+            }
+            .font(.subheadline.weight(.medium))
+            .foregroundStyle(Color("PanamaBlue"))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color("PanamaBlue").opacity(0.12))
+        }
+        .buttonStyle(.plain)
+    }
+}
+
 private struct ActiveFiltersRow: View {
     @Binding var filters: ListFilters
 
