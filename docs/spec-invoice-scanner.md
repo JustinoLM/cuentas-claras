@@ -222,7 +222,7 @@ Se evaluó sincronizar SwiftData vía CloudKit como mecanismo de backup universa
 - El QR no se degrada por el tamaño del ticket (un súper con 60 ítems tiene el mismo QR pequeño que un ticket de 2 ítems) — el problema de "factura larga" no existe en la vía principal.
 - Los fallbacks 2 y 3 ya cubren el 100% de los casos donde el QR falla, sin necesitar interpretar texto libre con IA.
 - Evita mandar fotos de facturas a servicios externos (privacidad) y evita la complejidad de reconocer decenas de layouts de recibo distintos sin IA.
-- Consecuencia directa: no hay ningún dato de imagen que proteger ni que declarar en las políticas de privacidad de las tiendas.
+- Consecuencia directa: no hay ningún dato de imagen que proteger ni que declarar.
 
 ### 4.1 Vía 1 — Escaneo QR
 
@@ -594,14 +594,12 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 
 - **Ley 81 de Panamá (Protección de Datos Personales)**: la arquitectura local-first mantiene al desarrollador fuera del rol de "responsable del tratamiento" de datos de otros usuarios, porque no hay backend centralizando nada. Esto se rompe si en el futuro se agrega cualquier cosa centralizada (analytics, crash reporting con datos de usuario, backend propio).
 - **Condiciones de Uso de la DGI** (`https://dgi.mef.gob.pa/Condicion.php`): prohíben explícitamente "la venta o comercialización de los contenidos, documentos o cualquier parte de la información contenida en el Sitio". Uso personal y app gratuita no tienen problema; monetizar específicamente la función de consulta DGI es zona gris — consultar con un abogado antes de cobrar por eso, no antes de usarlo.
-- **App Store**: Privacy Policy + Privacy Nutrition Label obligatorios. Privacy Manifest (`PrivacyInfo.xcprivacy`) requerido desde 2024. La exención de "Sign in with Apple" (guideline 4.8) aplica porque el login de Microsoft es solo para conectar con un servicio de terceros específico (OneDrive), no la cuenta principal de la app — la app funciona 100% sin login.
-- **Google Play**: fuera de alcance en esta fase (solo iOS por ahora) — revisar Data Safety cuando se aborde Android.
 
 ---
 
 ## 18. Roadmap por fases
 
-**Estado**: Fase 5 completa — tag `v1.0.0` (Fase 4: `v0.4.0`, Fase 3: `v0.3.0`, Fase 2: `v0.2.0`, Fase 1: `v0.1.0`). Detalle del pulido hecho sobre lo básico de la Fase 1 en el issue #31 (cerrado). La publicación en App Store sigue pendiente (`docs/app-store-publication.md`). Siguiente: Fase 6 (pagos recurrentes #32, inversiones y ahorros #42), cada una con decisión de arquitectura previa.
+**Estado**: Fase 5 completa — tag `v1.0.0` (Fase 4: `v0.4.0`, Fase 3: `v0.3.0`, Fase 2: `v0.2.0`, Fase 1: `v0.1.0`). Detalle del pulido hecho sobre lo básico de la Fase 1 en el issue #31 (cerrado). Fase 6 en curso: formato CSV (#68) y pagos recurrentes (#32) mergeados; falta ahorros e inversiones (#42).
 
 ### Fase 1 — Núcleo (Capa 1) ✅
 - Modelos SwiftData (sección 3)
@@ -635,9 +633,6 @@ No se agregan tests más allá de estos — no hay valor en cobertura por cobert
 - Test: casos de riesgo en deduplicación y analítica (#40, ver CLAUDE.md sobre alcance de tests) ✅
 - Notas de crédito (sección 7), cuando se consiga un caso real. Mientras tanto caen en .unsupported (límite conocido de v1); no bloquea v1.0.0
 
-### Publicación en App Store (sin fecha, requiere Apple Developer Program)
-Fuera del alcance de las fases de código. Detalle en `docs/app-store-publication.md`.
-
 ### Fase 6: Formato CSV y funcionalidades extras (post v1.0.0)
 Diseño decidido el 2026-10-07. Se implementa en este orden y se mergea en secuencia, porque las tareas tocan las mismas secciones:
 - Formato CSV: BOM UTF-8 y fechas ISO 8601 (sección 11)
@@ -645,7 +640,7 @@ Diseño decidido el 2026-10-07. Se implementa en este orden y se mergea en secue
 - Ahorros e inversiones (#42, sección 20)
 
 ### Fuera de alcance (no en este spec)
-- Android / Google Play / Material Design
+- Android / Material Design
 - Certificate pinning
 - Sync bidireccional completo más allá de lo descrito en 13.3
 - Cualquier backend propio
