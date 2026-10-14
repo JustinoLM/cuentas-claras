@@ -8,12 +8,11 @@
 **A local-first iOS app that turns Panama's electronic invoices into a personal expense history.**
 Scan the QR code on a DGI e-invoice and the app fetches the official invoice record, parses every line item and stores it on your phone. No account, no server, no AI.
 
-<!-- TODO: add 3–4 screenshots to docs/images/ and update the paths below -->
 <p align="center">
   <img src="docs/images/list.png" width="200" alt="Expense list">
   <img src="docs/images/detail.png" width="200" alt="Invoice detail">
   <img src="docs/images/charts.png" width="200" alt="Charts">
-  <img src="docs/images/scan.png" width="200" alt="QR scanner">
+  <img src="docs/images/scan.png" width="200" alt="Capture options">
 </p>
 
 ## Why
